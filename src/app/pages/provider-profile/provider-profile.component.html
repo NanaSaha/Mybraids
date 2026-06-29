@@ -1,0 +1,282 @@
+@if (provider()) {
+  <!-- Profile Hero -->
+  <div class="profile-hero">
+
+    <!-- Layered decorative background -->
+    <div class="hero-bg">
+      <div class="hero-pattern"></div>
+      <div class="hero-overlay"></div>
+    </div>
+
+    <!-- Identity content sits ON the hero -->
+    <div class="container hero-body">
+      <div class="hero-identity">
+
+        <!-- Avatar -->
+        <div class="profile-avatar-wrap">
+          @if (provider()!.profileImage) {
+            <img class="profile-avatar profile-avatar-photo" [src]="provider()!.profileImage" [alt]="provider()!.name">
+          } @else {
+            <div class="profile-avatar profile-avatar-initials" [style.background]="gradient">
+              <span>{{ initials }}</span>
+            </div>
+          }
+          @if (provider()!.verified) {
+            <div class="verified-badge" title="Verified Artist">
+              <i class="fas fa-check"></i>
+            </div>
+          }
+        </div>
+
+        <!-- Name, tagline, badges -->
+        <div class="hero-text">
+          <div class="hero-badges">
+            @if (provider()!.category) {
+              <span class="hero-badge">{{ provider()!.category }}</span>
+            }
+            @if (provider()!.verified) {
+              <span class="hero-badge hero-badge-verified">
+                <i class="fas fa-shield-check"></i> Verified
+              </span>
+            }
+          </div>
+          <h1 class="hero-name">{{ provider()!.name }}</h1>
+          @if (provider()!.tagline) {
+            <p class="hero-tagline">"{{ provider()!.tagline }}"</p>
+          }
+          @if (provider()!.location.city) {
+            <p class="hero-location">
+              <i class="fas fa-location-dot"></i>
+              {{ provider()!.location.city }}@if (provider()!.location.country) {, {{ provider()!.location.country }}}
+            </p>
+          }
+        </div>
+
+        <!-- Book CTA (top-right on desktop) -->
+        <div class="hero-cta">
+          <a [routerLink]="['/book', provider()!.id]" class="btn-hero-book">
+            <i class="fas fa-calendar-plus"></i> Book Appointment
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats strip anchored at the bottom of the hero -->
+    <div class="hero-stats-strip">
+      <div class="container">
+        <div class="profile-stats">
+          <div class="pstat">
+            <div class="pstat-value">
+              <div class="stars-inline">
+                @for (s of stars; track s) {
+                  <i class="fas"
+                     [class.fa-star]="isStarFilled(s, provider()!.rating)"
+                     [class.fa-star-half-stroke]="isStarHalf(s, provider()!.rating)"
+                     [class.fa-regular]="!isStarFilled(s, provider()!.rating) && !isStarHalf(s, provider()!.rating)">
+                  </i>
+                }
+              </div>
+              {{ provider()!.rating }}
+            </div>
+            <div class="pstat-label">{{ provider()!.reviewCount }} reviews</div>
+          </div>
+          <div class="pstat-divider"></div>
+          <div class="pstat">
+            <div class="pstat-value">{{ provider()!.yearsExperience }}+</div>
+            <div class="pstat-label">Years exp.</div>
+          </div>
+          <div class="pstat-divider"></div>
+          <div class="pstat">
+            <div class="pstat-value">{{ provider()!.currency }} {{ provider()!.startingPrice }}</div>
+            <div class="pstat-label">Starting price</div>
+          </div>
+          <div class="pstat-divider"></div>
+          <div class="pstat">
+            <div class="pstat-value">
+              <i class="fas fa-location-dot"></i>
+              {{ provider()!.location.city || 'Online' }}
+            </div>
+            <div class="pstat-label">{{ provider()!.location.country }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="profile-content">
+    <div class="container">
+      <div class="profile-layout">
+
+        <!-- Main Column -->
+        <div class="main-col">
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab" [class.active]="activeTab() === 'gallery'" (click)="activeTab.set('gallery')">
+              <i class="fas fa-images"></i> Portfolio
+            </button>
+            <button class="tab" [class.active]="activeTab() === 'services'" (click)="activeTab.set('services')">
+              <i class="fas fa-list"></i> Services & Pricing
+            </button>
+            <button class="tab" [class.active]="activeTab() === 'reviews'" (click)="activeTab.set('reviews')">
+              <i class="fas fa-star"></i> Reviews ({{ reviews().length }})
+            </button>
+          </div>
+
+          <!-- Gallery Tab -->
+          @if (activeTab() === 'gallery') {
+            <div class="gallery-section">
+              @if (provider()!.galleryImages.length === 0) {
+                <div class="gallery-empty-state">
+                  <i class="fas fa-images"></i>
+                  <p>No portfolio photos yet.</p>
+                </div>
+              }
+              <div class="gallery-grid">
+                @for (img of provider()!.galleryImages; track img; let i = $index) {
+                  <div class="gallery-item" (click)="selectedGalleryIndex.set(i)">
+                    <img [src]="img" [alt]="provider()!.name + ' portfolio ' + (i + 1)" loading="lazy">
+                    <div class="gallery-overlay">
+                      <i class="fas fa-expand-alt"></i>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Lightbox -->
+              @if (selectedGalleryIndex() !== null) {
+                <div class="lightbox" (click)="selectedGalleryIndex.set(null)">
+                  <button class="lightbox-close"><i class="fas fa-times"></i></button>
+                  <button class="lightbox-prev" (click)="$event.stopPropagation(); selectedGalleryIndex.set((selectedGalleryIndex()! - 1 + provider()!.galleryImages.length) % provider()!.galleryImages.length)">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <img [src]="provider()!.galleryImages[selectedGalleryIndex()!]" [alt]="provider()!.name" (click)="$event.stopPropagation()">
+                  <button class="lightbox-next" (click)="$event.stopPropagation(); selectedGalleryIndex.set((selectedGalleryIndex()! + 1) % provider()!.galleryImages.length)">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                  <p class="lightbox-counter">{{ selectedGalleryIndex()! + 1 }} / {{ provider()!.galleryImages.length }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Services Tab -->
+          @if (activeTab() === 'services') {
+            <div class="services-list">
+              @for (service of provider()!.services; track service.id) {
+                <div class="service-item">
+                  <div class="service-info">
+                    <h4 class="service-name">{{ service.name }}</h4>
+                    <p class="service-desc">{{ service.description }}</p>
+                    <div class="service-meta">
+                      <span><i class="fas fa-clock"></i> {{ service.duration }} min</span>
+                    </div>
+                  </div>
+                  <div class="service-price">
+                    <span class="price">{{ service.currency }} {{ service.price }}</span>
+                    <a [routerLink]="['/book', provider()!.id]" [queryParams]="{serviceId: service.id}" class="btn btn-outline btn-sm">
+                      Book
+                    </a>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Reviews Tab -->
+          @if (activeTab() === 'reviews') {
+            <div class="reviews-section">
+              @if (reviews().length === 0) {
+                <div class="no-reviews">
+                  <i class="fas fa-star"></i>
+                  <p>No reviews yet. Be the first to leave a review!</p>
+                </div>
+              } @else {
+                @for (review of reviews(); track review.id) {
+                  <div class="review-card">
+                    <div class="review-header">
+                      <div class="review-avatar" [style.background]="getReviewGradient(reviews().indexOf(review))">
+                        {{ getReviewInitials(review.clientName) }}
+                      </div>
+                      <div class="review-meta">
+                        <p class="reviewer-name">{{ review.clientName }}</p>
+                        <p class="review-date">{{ formatDate(review.createdAt) }}</p>
+                      </div>
+                      <div class="review-stars">
+                        @for (s of stars; track s) {
+                          <i class="fas fa-star" [class.filled]="isStarFilled(s, review.rating)"></i>
+                        }
+                      </div>
+                    </div>
+                    <p class="review-service"><i class="fas fa-check-circle"></i> {{ review.serviceProvided }}</p>
+                    <p class="review-comment">{{ review.comment }}</p>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar-col">
+
+          <!-- About -->
+          <div class="sidebar-card">
+            <h3><i class="fas fa-user"></i> About</h3>
+            <p class="about-text">{{ provider()!.bio }}</p>
+            <div class="specialties-list">
+              @for (spec of provider()!.specialties; track spec) {
+                <span class="specialty-pill">{{ spec }}</span>
+              }
+            </div>
+            @if (provider()!.instagram) {
+              <a href="https://instagram.com/{{ provider()!.instagram.replace('@','') }}" class="social-link" target="_blank">
+                <i class="fab fa-instagram"></i> {{ provider()!.instagram }}
+              </a>
+            }
+          </div>
+
+          <!-- Availability -->
+          <div class="sidebar-card">
+            <h3><i class="fas fa-calendar"></i> Availability</h3>
+            <div class="availability-grid">
+              @for (day of availabilityDays; track day.day) {
+                <div class="avail-row" [class.available]="day.slot.available" [class.closed]="!day.slot.available">
+                  <span class="avail-day">{{ day.label }}</span>
+                  @if (day.slot.available) {
+                    <span class="avail-hours">{{ day.slot.open }} – {{ day.slot.close }}</span>
+                  } @else {
+                    <span class="avail-closed">Closed</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Book CTA -->
+          <div class="book-cta-card">
+            <p class="book-cta-price">
+              From <strong>{{ provider()!.currency }} {{ provider()!.startingPrice }}</strong>
+            </p>
+            <a [routerLink]="['/book', provider()!.id]" class="btn btn-primary w-full">
+              <i class="fas fa-calendar-plus"></i> Book Now
+            </a>
+            <p class="book-note"><i class="fas fa-shield-check"></i> Secure booking, instant confirmation</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="not-found">
+    <div class="container text-center" style="padding: 120px 24px">
+      <div class="empty-icon" style="width:80px;height:80px;background:var(--primary-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:2rem;color:var(--primary)">
+        <i class="fas fa-user-slash"></i>
+      </div>
+      <h2>Artist Not Found</h2>
+      <p style="color:var(--text-muted);margin:12px 0 24px">This artist profile doesn't exist or has been removed.</p>
+      <a routerLink="/search" class="btn btn-primary">Browse Artists</a>
+    </div>
+  </div>
+}

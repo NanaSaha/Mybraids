@@ -1,0 +1,446 @@
+<div class="admin-shell">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <i class="fas fa-shield-alt"></i>
+      <span>Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item" [class.active]="activeTab()==='overview'"   (click)="setTab('overview')">
+        <i class="fas fa-chart-pie"></i> Overview
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='users'"      (click)="setTab('users')">
+        <i class="fas fa-users"></i> Users
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='providers'"  (click)="setTab('providers')">
+        <i class="fas fa-store"></i> Providers
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='bookings'"   (click)="setTab('bookings')">
+        <i class="fas fa-calendar-check"></i> Bookings
+      </button>
+      <button class="nav-item" [class.active]="activeTab()==='reviews'"    (click)="setTab('reviews')">
+        <i class="fas fa-star"></i> Reviews
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <a routerLink="/" class="nav-item">
+        <i class="fas fa-arrow-left"></i> Back to App
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="admin-main">
+
+    <!-- Toast -->
+    @if (actionMsg()) {
+      <div class="toast">{{ actionMsg() }}</div>
+    }
+
+    <!-- ── OVERVIEW ──────────────────────────────────────────────────── -->
+    @if (activeTab() === 'overview') {
+      <div class="page-header">
+        <h1>Overview</h1>
+        <p>Platform health at a glance</p>
+      </div>
+
+      @if (statsLoading()) {
+        <div class="loading-grid">
+          @for (_ of [1,2,3,4,5,6]; track $index) {
+            <div class="stat-skeleton"></div>
+          }
+        </div>
+      } @else if (stats()) {
+        <div class="stats-grid">
+          <div class="stat-card accent-blue">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-body">
+              <p class="stat-value">{{ stats()!.users.total }}</p>
+              <p class="stat-label">Total Users</p>
+              <p class="stat-sub">+{{ stats()!.users.newThisMonth }} this month</p>
+            </div>
+          </div>
+          <div class="stat-card accent-green">
+            <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+            <div class="stat-body">
+              <p class="stat-value">{{ stats()!.users.clients }}</p>
+              <p class="stat-label">Clients</p>
+              <p class="stat-sub">{{ stats()!.users.active }} active</p>
+            </div>
+          </div>
+          <div class="stat-card accent-orange">
+            <div class="stat-icon"><i class="fas fa-store"></i></div>
+            <div class="stat-body">
+              <p class="stat-value">{{ stats()!.users.providers }}</p>
+              <p class="stat-label">Providers</p>
+              <p class="stat-sub stat-warn" (click)="setTab('providers'); providerPending.set(true); loadProviders()">
+                {{ stats()!.providers.pendingApprovals }} pending approval
+              </p>
+            </div>
+          </div>
+          <div class="stat-card accent-red">
+            <div class="stat-icon"><i class="fas fa-ban"></i></div>
+            <div class="stat-body">
+              <p class="stat-value">{{ stats()!.users.suspended }}</p>
+              <p class="stat-label">Suspended</p>
+              <p class="stat-sub">accounts</p>
+            </div>
+          </div>
+          <div class="stat-card accent-purple">
+            <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="stat-body">
+              <p class="stat-value">{{ stats()!.bookings.total }}</p>
+              <p class="stat-label">Total Bookings</p>
+              <p class="stat-sub">{{ bookingsByStatus['completed'] ?? 0 }} completed</p>
+            </div>
+          </div>
+          <div class="stat-card accent-gold">
+            <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div class="stat-body">
+              <p class="stat-value">${{ stats()!.revenue | number:'1.0-0' }}</p>
+              <p class="stat-label">Total Revenue</p>
+              <p class="stat-sub">from completed bookings</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bookings breakdown -->
+        <div class="section-card mt-6">
+          <h2 class="section-title">Bookings by Status</h2>
+          <div class="status-breakdown">
+            @for (entry of bookingsByStatus | keyvalue; track entry.key) {
+              <div class="status-pill" [style.border-color]="statusColor(entry.key)">
+                <span class="s-dot" [style.background]="statusColor(entry.key)"></span>
+                <span class="s-label">{{ entry.key }}</span>
+                <span class="s-count">{{ entry.value }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ── USERS ─────────────────────────────────────────────────────── -->
+    @if (activeTab() === 'users') {
+      <div class="page-header">
+        <div>
+          <h1>User Management</h1>
+          <p>{{ usersTotal() }} users total</p>
+        </div>
+        <button class="btn-create" (click)="openCreateUser()">
+          <i class="fas fa-plus"></i> Create User
+        </button>
+      </div>
+
+      <!-- Create User Modal -->
+      @if (showCreateUser()) {
+        <div class="modal-backdrop" (click)="cancelCreateUser()">
+          <div class="modal-card" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h2>Create New User</h2>
+              <button class="modal-close" (click)="cancelCreateUser()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+              <div class="form-row">
+                <label>Full Name</label>
+                <input type="text" placeholder="Jane Smith"
+                       [value]="createForm().displayName"
+                       (input)="updateCreateForm('displayName', $any($event.target).value)">
+              </div>
+              <div class="form-row">
+                <label>Email Address</label>
+                <input type="email" placeholder="jane@example.com"
+                       [value]="createForm().email"
+                       (input)="updateCreateForm('email', $any($event.target).value)">
+              </div>
+              <div class="form-row">
+                <label>Password</label>
+                <input type="password" placeholder="Min 8 characters"
+                       [value]="createForm().password"
+                       (input)="updateCreateForm('password', $any($event.target).value)">
+              </div>
+              <div class="form-row">
+                <label>Role</label>
+                <select [value]="createForm().role"
+                        (change)="updateCreateForm('role', $any($event.target).value)">
+                  <option value="admin">Admin</option>
+                  <option value="provider">Provider</option>
+                  <option value="client">Client</option>
+                </select>
+              </div>
+              @if (createError()) {
+                <p class="form-error">{{ createError() }}</p>
+              }
+            </div>
+            <div class="modal-footer">
+              <button class="btn-cancel" (click)="cancelCreateUser()">Cancel</button>
+              <button class="btn-submit" (click)="submitCreateUser()" [disabled]="createSaving()">
+                @if (createSaving()) { <i class="fas fa-spinner fa-spin"></i> } @else { Create User }
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input [(ngModel)]="userSearch" [ngModelOptions]="{standalone:true}"
+                 (input)="onUserSearch()" placeholder="Search name or email…">
+        </div>
+        <select [(ngModel)]="userRoleFilter" [ngModelOptions]="{standalone:true}" (change)="userPage.set(1);loadUsers()">
+          <option value="">All roles</option>
+          <option value="client">Client</option>
+          <option value="provider">Provider</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select [(ngModel)]="userStatusFilter" [ngModelOptions]="{standalone:true}" (change)="userPage.set(1);loadUsers()">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="banned">Banned</option>
+        </select>
+      </div>
+
+      @if (usersLoading()) {
+        <div class="loading-bar"></div>
+      }
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr>
+                <td>
+                  <div class="user-cell">
+                    <div class="avatar-sm">{{ user.displayName[0] }}</div>
+                    <div>
+                      <p class="cell-name">{{ user.displayName }}</p>
+                      <p class="cell-sub">{{ user.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <select class="inline-select" [value]="user.role"
+                          (change)="setUserRole(user, $any($event.target).value)">
+                    <option value="client">Client</option>
+                    <option value="provider">Provider</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </td>
+                <td>
+                  <span class="badge" [style.background]="statusColor(user.status)">{{ user.status }}</span>
+                </td>
+                <td class="date-cell">{{ formatDate(user.createdAt) }}</td>
+                <td>
+                  <div class="action-group">
+                    @if (user.status !== 'active') {
+                      <button class="btn-xs btn-success" (click)="setUserStatus(user, 'active')">Activate</button>
+                    }
+                    @if (user.status === 'active') {
+                      <button class="btn-xs btn-warn" (click)="setUserStatus(user, 'suspended')">Suspend</button>
+                    }
+                    @if (user.status !== 'banned') {
+                      <button class="btn-xs btn-danger" (click)="setUserStatus(user, 'banned')">Ban</button>
+                    }
+                    <button class="btn-xs btn-delete" (click)="deleteUser(user)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+            @if (!usersLoading() && users().length === 0) {
+              <tr><td colspan="5" class="empty-row">No users found</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- ── PROVIDERS ──────────────────────────────────────────────────── -->
+    @if (activeTab() === 'providers') {
+      <div class="page-header">
+        <h1>Provider Management</h1>
+        <p>{{ providersTotal() }} providers total</p>
+      </div>
+
+      <div class="toolbar">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="providerPending" [ngModelOptions]="{standalone:true}"
+                 (change)="providerPage.set(1);loadProviders()">
+          Show pending approvals only
+        </label>
+      </div>
+
+      @if (providersLoading()) {
+        <div class="loading-bar"></div>
+      }
+
+      <div class="provider-grid">
+        @for (p of providers(); track p.id) {
+          <div class="provider-card-admin">
+            <div class="provider-card-top">
+              <div class="provider-avatar">
+                @if (p.photoURL) {
+                  <img [src]="p.photoURL" [alt]="p.name">
+                } @else {
+                  <div class="avatar-placeholder">{{ p.name[0] }}</div>
+                }
+              </div>
+              <div class="provider-info">
+                <p class="prov-name">{{ p.name }}</p>
+                <p class="prov-email">{{ p.email }}</p>
+                <p class="prov-cat">{{ p.category }} · {{ p.city || 'No city' }}</p>
+                <p class="prov-rating">{{ stars(p.rating).join('') }} ({{ p.reviewCount }})</p>
+              </div>
+            </div>
+            <div class="provider-flags">
+              <button class="flag-btn" [class.on]="p.approved" (click)="toggleProviderFlag(p, 'approved')">
+                <i class="fas" [class.fa-check-circle]="p.approved" [class.fa-times-circle]="!p.approved"></i>
+                Approved
+              </button>
+              <button class="flag-btn" [class.on]="p.verified" (click)="toggleProviderFlag(p, 'verified')">
+                <i class="fas fa-shield-alt"></i> Verified
+              </button>
+              <button class="flag-btn" [class.on]="p.featured" (click)="toggleProviderFlag(p, 'featured')">
+                <i class="fas fa-star"></i> Featured
+              </button>
+            </div>
+            <div class="provider-meta">
+              <span class="badge" [style.background]="statusColor(p.userStatus)">{{ p.userStatus }}</span>
+              <span class="prov-price">${{ p.startingPrice }} {{ p.currency }}</span>
+              <span class="prov-joined">Joined {{ formatDate(p.createdAt) }}</span>
+            </div>
+          </div>
+        }
+        @if (!providersLoading() && providers().length === 0) {
+          <p class="empty-state">No providers found</p>
+        }
+      </div>
+    }
+
+    <!-- ── BOOKINGS ────────────────────────────────────────────────────── -->
+    @if (activeTab() === 'bookings') {
+      <div class="page-header">
+        <h1>All Bookings</h1>
+        <p>{{ bookings().length }} records</p>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input [(ngModel)]="bookingSearch" [ngModelOptions]="{standalone:true}"
+                 (input)="loadBookings()" placeholder="Search client or provider…">
+        </div>
+        <select [(ngModel)]="bookingStatusFilter" [ngModelOptions]="{standalone:true}" (change)="loadBookings()">
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      @if (bookingsLoading()) {
+        <div class="loading-bar"></div>
+      }
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Provider</th>
+              <th>Service</th>
+              <th>Date &amp; Time</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of bookings(); track b.id) {
+              <tr>
+                <td>
+                  <p class="cell-name">{{ b.clientName }}</p>
+                  <p class="cell-sub">{{ b.clientEmail }}</p>
+                </td>
+                <td>{{ b.providerName }}</td>
+                <td>{{ b.serviceName }}</td>
+                <td class="date-cell">{{ formatDate(b.date) }}<br><small>{{ b.time }}</small></td>
+                <td>${{ b.servicePrice }}</td>
+                <td><span class="badge" [style.background]="statusColor(b.status)">{{ b.status }}</span></td>
+                <td>
+                  <select class="inline-select" [value]="b.status"
+                          (change)="updateBookingStatus(b, $any($event.target).value)">
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </td>
+              </tr>
+            }
+            @if (!bookingsLoading() && bookings().length === 0) {
+              <tr><td colspan="7" class="empty-row">No bookings found</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- ── REVIEWS ─────────────────────────────────────────────────────── -->
+    @if (activeTab() === 'reviews') {
+      <div class="page-header">
+        <h1>Review Moderation</h1>
+        <p>{{ reviews().length }} reviews total</p>
+      </div>
+
+      @if (reviewsLoading()) {
+        <div class="loading-bar"></div>
+      }
+
+      <div class="reviews-list">
+        @for (r of reviews(); track r.id) {
+          <div class="review-card-admin">
+            <div class="review-header">
+              <div>
+                <span class="review-stars">{{ stars(r.rating).join('') }}</span>
+                <span class="review-from">{{ r.clientName }}</span>
+                <span class="review-arrow">→</span>
+                <span class="review-to">{{ r.providerName }}</span>
+              </div>
+              <div class="review-meta-right">
+                <span class="review-date">{{ formatDate(r.createdAt) }}</span>
+                <button class="btn-xs btn-delete" (click)="deleteReview(r)">
+                  <i class="fas fa-trash"></i> Remove
+                </button>
+              </div>
+            </div>
+            @if (r.comment) {
+              <p class="review-body">{{ r.comment }}</p>
+            }
+            @if (r.serviceProvided) {
+              <p class="review-service">Service: {{ r.serviceProvided }}</p>
+            }
+          </div>
+        }
+        @if (!reviewsLoading() && reviews().length === 0) {
+          <p class="empty-state">No reviews yet</p>
+        }
+      </div>
+    }
+
+  </main>
+</div>

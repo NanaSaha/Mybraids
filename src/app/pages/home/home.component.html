@@ -1,0 +1,381 @@
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-pattern"></div>
+    <div class="hero-overlay"></div>
+  </div>
+
+  <div class="container hero-content">
+    <div class="hero-text animate-fade-up">
+      <div class="hero-label">
+        <span class="hero-dot"></span>
+        The Global African Beauty Marketplace
+      </div>
+      <h1 class="hero-headline">
+        Find Your <em class="hero-em">Perfect</em><br>
+        Beauty Artist,<br>
+        Anywhere in the World
+      </h1>
+      <p class="hero-sub">
+        Book trusted hairstylists, makeup artists & lash technicians.<br>
+        From Lagos to London, Accra to New York — your glow is just a click away.
+      </p>
+
+      <!-- Search Form -->
+      <div class="hero-search">
+        <div class="search-field search-field-ac">
+          <app-location-autocomplete
+            placeholder="Enter city or country…"
+            icon="fa-location-dot"
+            mode="location"
+            [value]="searchLocation"
+            (valueChange)="searchLocation = $event"
+            (selected)="onSearch()"
+          />
+        </div>
+        <div class="search-divider"></div>
+        <div class="search-field">
+          <i class="fas fa-scissors"></i>
+          <select [(ngModel)]="searchCategory">
+            <option value="">All Services</option>
+            @for (cat of categories; track cat.value) {
+              <option [value]="cat.value">{{ cat.label }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn btn-primary search-btn" (click)="onSearch()">
+          <i class="fas fa-search"></i>
+          <span>Search</span>
+        </button>
+      </div>
+
+      <!-- Trust signals -->
+      <div class="hero-trust">
+        <div class="trust-item">
+          <i class="fas fa-shield-check"></i>
+          <span>Verified Artists</span>
+        </div>
+        <div class="trust-dot"></div>
+        <div class="trust-item">
+          <i class="fas fa-star"></i>
+          <span>4.9★ Average</span>
+        </div>
+        <div class="trust-dot"></div>
+        <div class="trust-item">
+          <i class="fas fa-globe-africa"></i>
+          <span>85+ Countries</span>
+        </div>
+        <div class="trust-dot"></div>
+        <div class="trust-item">
+          <i class="fas fa-lock"></i>
+          <span>Secure Booking</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Visual -->
+    <div class="hero-visual">
+      <div class="hero-card-stack">
+        <div class="floating-card card-1">
+          <div class="fc-avatar" style="background: linear-gradient(135deg, #C85A2E, #E8A030)">AD</div>
+          <div class="fc-info">
+            <p class="fc-name">Amara Diallo</p>
+            <p class="fc-service">Box Braids Specialist</p>
+            <div class="fc-rating"><i class="fas fa-star"></i> 4.9 · 127 reviews</div>
+          </div>
+        </div>
+        <div class="floating-card card-2">
+          <div class="fc-avatar" style="background: linear-gradient(135deg, #4A7C59, #E8A030)">FO</div>
+          <div class="fc-info">
+            <p class="fc-name">Fatima Ouédraogo</p>
+            <p class="fc-service">Celebrity MUA</p>
+            <div class="fc-rating"><i class="fas fa-star"></i> 4.8 · 94 reviews</div>
+          </div>
+        </div>
+        <div class="floating-card card-3">
+          <div class="badge badge-sage"><i class="fas fa-calendar-check"></i> Booked just now</div>
+        </div>
+        <div class="hero-ring hero-ring-1"></div>
+        <div class="hero-ring hero-ring-2"></div>
+        <div class="hero-center-avatar" style="background: linear-gradient(135deg, #C85A2E 0%, #7B3F35 50%, #E8A030 100%)">
+          <i class="fas fa-scissors"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="scroll-indicator">
+    <div class="scroll-line"></div>
+    <span>Scroll to explore</span>
+  </div>
+</section>
+
+<!-- ========== CATEGORIES ========== -->
+<section class="categories-section">
+  <div class="container">
+    <div class="categories-header">
+      <h2>Explore by Service</h2>
+      <a routerLink="/search" class="btn btn-ghost btn-sm">View all <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="categories-grid">
+      @for (cat of categories; track cat.value) {
+        <a class="category-card" [routerLink]="['/search']" [queryParams]="{category: cat.value}">
+          <div class="category-icon" [style.background]="cat.color + '18'" [style.color]="cat.color">
+            <i class="fas {{ cat.icon }}"></i>
+          </div>
+          <span class="category-label">{{ cat.label }}</span>
+          <i class="fas fa-arrow-right category-arrow"></i>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ========== HOW IT WORKS ========== -->
+<section class="section how-works-section">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Simple process</p>
+      <h2>How MyBraids Works</h2>
+      <p>Getting your perfect look has never been easier. Three simple steps to your transformation.</p>
+    </div>
+
+    <div class="how-grid">
+      @for (step of howItWorks; track step.step) {
+        <div class="how-card">
+          <div class="step-number">{{ step.step }}</div>
+          <div class="step-icon">
+            <i class="fas {{ step.icon }}"></i>
+          </div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.description }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="how-cta">
+      <a routerLink="/search" class="btn btn-primary btn-lg">
+        <i class="fas fa-search"></i> Find Your Artist Now
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FEATURED PROVIDERS ========== -->
+<section class="section featured-section">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Top talent</p>
+      <h2>Featured Beauty Artists</h2>
+      <p>Discover our most celebrated artists loved by clients worldwide.</p>
+    </div>
+
+    <div class="grid-3">
+      @for (provider of featuredProviders(); track provider.id) {
+        <app-provider-card [provider]="provider" [index]="featuredProviders().indexOf(provider)" />
+      }
+    </div>
+
+    <div class="text-center" style="margin-top: 48px">
+      <a routerLink="/search" class="btn btn-outline btn-lg">
+        View All Artists <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== STATS BANNER ========== -->
+<section class="stats-section">
+  <div class="stats-bg">
+    <div class="stats-pattern"></div>
+  </div>
+  <div class="container stats-content">
+    @for (stat of stats; track stat.label) {
+      <div class="stat-item">
+        <div class="stat-icon"><i class="fas {{ stat.icon }}"></i></div>
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ========== BROWSE BY LOCATION ========== -->
+<section class="section locations-section">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Global reach</p>
+      <h2>Find Artists in Your City</h2>
+      <p>Our talented artists are everywhere you are. Pick a city and the service you need.</p>
+    </div>
+
+    <!-- Country filter tabs -->
+    @if (!locationsLoading()) {
+      <div class="country-tabs">
+        @for (c of countries(); track c) {
+          <button class="country-tab" [class.active]="selectedCountry() === c"
+                  (click)="selectedCountry.set(c)">
+            {{ c }}
+          </button>
+        }
+      </div>
+    }
+
+    <!-- City cards -->
+    @if (locationsLoading()) {
+      <div class="loc-skeleton-grid">
+        @for (_ of [1,2,3,4,5,6]; track $index) {
+          <div class="loc-skeleton"></div>
+        }
+      </div>
+    } @else {
+      <div class="locations-grid">
+        @for (loc of filteredLocations(); track loc.city + loc.country) {
+          <div class="location-card">
+            <div class="loc-card-top" (click)="searchByCity(loc.city)">
+              <div class="location-icon">
+                <i class="fas fa-location-dot"></i>
+              </div>
+              <div class="location-info">
+                <p class="location-city">{{ loc.city }}</p>
+                <p class="location-country">{{ loc.country }}</p>
+              </div>
+              @if (loc.count > 0) {
+                <div class="location-count">{{ loc.count }} artist{{ loc.count === 1 ? '' : 's' }}</div>
+              }
+            </div>
+
+            <!-- Service shortcuts -->
+            @if (loc.categories.length > 0) {
+              <div class="loc-services">
+                @for (cat of loc.categories.slice(0, 4); track cat) {
+                  <button class="loc-service-chip" (click)="searchByCity(loc.city, cat)">
+                    {{ categoryLabel(cat) }}
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="loc-services">
+                @for (cat of ['hair','makeup','eyelashes','nails']; track cat) {
+                  <button class="loc-service-chip" (click)="searchByCity(loc.city, cat)">
+                    {{ categoryLabel(cat) }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <div class="text-center" style="margin-top: 32px">
+      <a routerLink="/search" class="btn btn-outline btn-lg">
+        Search All Cities <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TESTIMONIALS ========== -->
+<section class="section testimonials-section">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-label">Client love</p>
+      <h2>What Our Community Says</h2>
+      <p>Real stories from clients and artists who love MyBraids.</p>
+    </div>
+
+    <div class="grid-3">
+      @for (t of testimonials; track t.name) {
+        <div class="testimonial-card">
+          <div class="quote-icon">"</div>
+          <p class="testimonial-text">{{ t.text }}</p>
+          <div class="testimonial-stars">
+            @for (s of getStars(); track s) {
+              <i class="fas fa-star" [class.active]="isStarFilled(s, t.rating)"></i>
+            }
+          </div>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" [style.background]="t.gradient">{{ t.initials }}</div>
+            <div>
+              <p class="author-name">{{ t.name }}</p>
+              <p class="author-meta">{{ t.location }} · {{ t.service }}</p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ========== BECOME PROVIDER CTA ========== -->
+<section class="provider-cta-section">
+  <div class="container">
+    <div class="provider-cta-inner">
+      <div class="cta-content">
+        <div class="section-label">For Artists & Stylists</div>
+        <h2>Turn Your Talent<br>Into a Thriving Business</h2>
+        <p>Join thousands of beauty artists who use MyBraids to attract new clients, manage bookings, and grow their brand — worldwide.</p>
+        <ul class="benefit-list">
+          @for (b of providerBenefits; track b.text) {
+            <li>
+              <div class="benefit-icon"><i class="fas {{ b.icon }}"></i></div>
+              <span>{{ b.text }}</span>
+            </li>
+          }
+        </ul>
+        <div class="cta-actions">
+          <a routerLink="/auth/register" [queryParams]="{role:'provider'}" class="btn btn-white btn-lg">
+            <i class="fas fa-paint-brush"></i> Start for Free
+          </a>
+          <a href="#" class="cta-learn-more">Learn more <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
+      <div class="cta-visual">
+        <div class="cta-card">
+          <div class="cta-profile">
+            <div class="cta-avatar">GA</div>
+            <div>
+              <p class="cta-provider-name">Grace Adekunle</p>
+              <p class="cta-provider-role">Makeup Artist · New York</p>
+            </div>
+            <span class="badge badge-sage"><i class="fas fa-check"></i> Verified</span>
+          </div>
+          <div class="cta-stats-row">
+            <div class="cta-stat">
+              <p class="cta-stat-value">72</p>
+              <p class="cta-stat-label">Reviews</p>
+            </div>
+            <div class="cta-stat">
+              <p class="cta-stat-value">5.0</p>
+              <p class="cta-stat-label">Rating</p>
+            </div>
+            <div class="cta-stat">
+              <p class="cta-stat-value">$350</p>
+              <p class="cta-stat-label">Top Service</p>
+            </div>
+          </div>
+          <div class="cta-booking-preview">
+            <div class="booking-row">
+              <i class="fas fa-calendar-check"></i>
+              <div>
+                <p class="booking-label">Next Appointment</p>
+                <p class="booking-time">Tomorrow · 10:00 AM</p>
+              </div>
+              <span class="badge badge-sage">Confirmed</span>
+            </div>
+            <div class="booking-row">
+              <i class="fas fa-calendar-check"></i>
+              <div>
+                <p class="booking-label">New Booking</p>
+                <p class="booking-time">Friday · 2:00 PM</p>
+              </div>
+              <span class="badge badge-secondary">Pending</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

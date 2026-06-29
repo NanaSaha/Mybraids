@@ -1,0 +1,71 @@
+<footer class="footer">
+  <div class="kente-strip"></div>
+  <div class="footer-main">
+    <div class="container">
+      <div class="footer-grid">
+
+        <!-- Brand -->
+        <div class="footer-brand">
+          <div class="logo-icon">
+            <i class="fas fa-scissors"></i>
+          </div>
+          <h3 class="brand-name">MyBraids</h3>
+          <p class="brand-tagline">The global marketplace for African beauty arts. Find talented hair stylists, makeup artists, and lash technicians near you.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Instagram" class="social-btn"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="TikTok" class="social-btn"><i class="fab fa-tiktok"></i></a>
+            <a href="#" aria-label="Facebook" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Twitter" class="social-btn"><i class="fab fa-x-twitter"></i></a>
+          </div>
+        </div>
+
+        <!-- Services -->
+        <div class="footer-col">
+          <h4>Services</h4>
+          <ul>
+            <li><a routerLink="/search" [queryParams]="{category:'hair'}">Hair Styling</a></li>
+            <li><a routerLink="/search" [queryParams]="{category:'makeup'}">Makeup Artists</a></li>
+            <li><a routerLink="/search" [queryParams]="{category:'eyelashes'}">Lash Technicians</a></li>
+            <li><a routerLink="/search" [queryParams]="{category:'nails'}">Nail Artists</a></li>
+            <li><a routerLink="/search" [queryParams]="{category:'skincare'}">Skincare</a></li>
+          </ul>
+        </div>
+
+        <!-- For Artists -->
+        <div class="footer-col">
+          <h4>For Artists</h4>
+          <ul>
+            <li><a routerLink="/auth/register" [queryParams]="{role:'provider'}">Join as Artist</a></li>
+            <li><a routerLink="/dashboard/provider">Artist Dashboard</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">Success Stories</a></li>
+            <li><a href="#">Artist Resources</a></li>
+          </ul>
+        </div>
+
+        <!-- Company -->
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Press</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container">
+      <p>&copy; {{ currentYear }} MyBraids. All rights reserved. Made with <span class="heart">♥</span> for African beauty.</p>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,173 @@
+<div class="dashboard-page">
+  <div class="dashboard-header">
+    <div class="container">
+      <div class="dh-inner">
+        <div>
+          <h1>My Dashboard</h1>
+          <p>Manage your beauty appointments and bookings</p>
+        </div>
+        <a routerLink="/search" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Book New Service
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container dashboard-body">
+
+    <!-- Stats -->
+    <div class="dash-stats">
+      <div class="dash-stat">
+        <div class="ds-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="ds-info">
+          <span class="ds-value">{{ bookings().length }}</span>
+          <span class="ds-label">Total Bookings</span>
+        </div>
+      </div>
+      <div class="dash-stat">
+        <div class="ds-icon upcoming"><i class="fas fa-calendar-day"></i></div>
+        <div class="ds-info">
+          <span class="ds-value">{{ upcomingBookings.length }}</span>
+          <span class="ds-label">Upcoming</span>
+        </div>
+      </div>
+      <div class="dash-stat">
+        <div class="ds-icon completed"><i class="fas fa-check-circle"></i></div>
+        <div class="ds-info">
+          <span class="ds-value">{{ pastBookings.length }}</span>
+          <span class="ds-label">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings -->
+    <div class="bookings-section">
+      <div class="section-tabs">
+        <button class="tab" [class.active]="activeTab() === 'upcoming'" (click)="activeTab.set('upcoming')">
+          Upcoming ({{ upcomingBookings.length }})
+        </button>
+        <button class="tab" [class.active]="activeTab() === 'past'" (click)="activeTab.set('past')">
+          Past ({{ pastBookings.length }})
+        </button>
+      </div>
+
+      @if (activeTab() === 'upcoming') {
+        @if (upcomingBookings.length === 0) {
+          <div class="empty-bookings">
+            <i class="fas fa-calendar-plus"></i>
+            <h3>No upcoming bookings</h3>
+            <p>Ready to look your best? Find and book an artist near you.</p>
+            <a routerLink="/search" class="btn btn-primary">Browse Artists</a>
+          </div>
+        } @else {
+          <div class="bookings-list">
+            @for (booking of upcomingBookings; track booking.id) {
+              <div class="booking-card">
+                <div class="booking-artist-info">
+                  <div class="ba-avatar">{{ getInitials(booking.providerName) }}</div>
+                  <div>
+                    <h4>{{ booking.providerName }}</h4>
+                    <p class="ba-service">{{ booking.serviceName }}</p>
+                  </div>
+                </div>
+                <div class="booking-date-info">
+                  <div class="bd-item"><i class="fas fa-calendar"></i> {{ formatDate(booking.date) }}</div>
+                  <div class="bd-item"><i class="fas fa-clock"></i> {{ booking.time }} ({{ booking.duration }} min)</div>
+                </div>
+                <div class="booking-price">
+                  {{ booking.currency }} {{ booking.servicePrice }}
+                </div>
+                <div class="booking-status">
+                  <span class="status-badge" [class]="getStatusClass(booking.status)">
+                    {{ getStatusLabel(booking.status) }}
+                  </span>
+                </div>
+                <div class="booking-actions">
+                  <a [routerLink]="['/provider', booking.providerId]" class="btn btn-ghost btn-sm">View Artist</a>
+                  @if (booking.status !== 'cancelled') {
+                    <button class="btn btn-sm cancel-btn" (click)="cancelBooking(booking.id)">Cancel</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'past') {
+        @if (pastBookings.length === 0) {
+          <div class="empty-bookings">
+            <i class="fas fa-history"></i>
+            <h3>No past bookings yet</h3>
+            <p>Your completed bookings will appear here.</p>
+          </div>
+        } @else {
+          <div class="bookings-list">
+            @for (booking of pastBookings; track booking.id) {
+              <div class="booking-card faded">
+                <div class="booking-artist-info">
+                  <div class="ba-avatar">{{ getInitials(booking.providerName) }}</div>
+                  <div>
+                    <h4>{{ booking.providerName }}</h4>
+                    <p class="ba-service">{{ booking.serviceName }}</p>
+                  </div>
+                </div>
+                <div class="booking-date-info">
+                  <div class="bd-item"><i class="fas fa-calendar"></i> {{ formatDate(booking.date) }}</div>
+                  <div class="bd-item"><i class="fas fa-clock"></i> {{ booking.time }}</div>
+                </div>
+                <div class="booking-price">{{ booking.currency }} {{ booking.servicePrice }}</div>
+                <div class="booking-status">
+                  <span class="status-badge" [class]="getStatusClass(booking.status)">
+                    {{ getStatusLabel(booking.status) }}
+                  </span>
+                </div>
+                <div class="booking-actions">
+                  @if (booking.status === 'completed') {
+                    @if (isReviewed(booking.id)) {
+                      <span class="review-done"><i class="fas fa-check-circle"></i> Reviewed</span>
+                    } @else if (reviewingBookingId() !== booking.id) {
+                      <button class="btn btn-outline btn-sm" (click)="openReview(booking)">
+                        <i class="fas fa-star"></i> Leave Review
+                      </button>
+                    }
+                  }
+                  <a [routerLink]="['/book', booking.providerId]" class="btn btn-ghost btn-sm">Book Again</a>
+                </div>
+
+                @if (reviewingBookingId() === booking.id) {
+                  <div class="review-form">
+                    <p class="review-form-title">Rate your experience with {{ booking.providerName }}</p>
+                    <div class="star-picker">
+                      @for (star of [1,2,3,4,5]; track star) {
+                        <button type="button" class="star-btn" [class.filled]="star <= reviewRating" (click)="setRating(star)">
+                          <i class="fas fa-star"></i>
+                        </button>
+                      }
+                    </div>
+                    <textarea
+                      class="form-control review-textarea"
+                      placeholder="Tell others about your experience (optional)"
+                      [(ngModel)]="reviewComment"
+                      rows="3"
+                    ></textarea>
+                    @if (reviewError()) {
+                      <p class="review-error"><i class="fas fa-exclamation-circle"></i> {{ reviewError() }}</p>
+                    }
+                    <div class="review-actions">
+                      <button class="btn btn-primary btn-sm" (click)="submitReview(booking)" [disabled]="reviewSubmitting()">
+                        @if (reviewSubmitting()) { Submitting... } @else { Submit Review }
+                      </button>
+                      <button class="btn btn-ghost btn-sm" (click)="cancelReview()">Cancel</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+  </div>
+</div>

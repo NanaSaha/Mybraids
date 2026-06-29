@@ -1,0 +1,167 @@
+<header class="navbar" [class.scrolled]="isScrolled()">
+  <div class="container">
+    <div class="navbar-inner">
+
+      <!-- Logo -->
+      <a class="logo" routerLink="/" (click)="closeMenus()">
+        <div class="logo-icon">
+          <i class="fas fa-scissors"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-main">MyBraids</span>
+          <span class="logo-sub">Beauty Marketplace</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav: admins see admin panel; providers see their workspace; clients/guests see browse links -->
+      <nav class="nav-links">
+        @if (authService.isAdmin) {
+          <a routerLink="/dashboard/admin" routerLinkActive="active">
+            <i class="fas fa-shield-alt"></i> Admin Panel
+          </a>
+        } @else if (authService.isProvider) {
+          <a routerLink="/dashboard/provider" routerLinkActive="active" [routerLinkActiveOptions]="{exact:false}">
+            <i class="fas fa-chart-line"></i> Dashboard
+          </a>
+          <a routerLink="/dashboard/provider" [queryParams]="{tab:'bookings'}">
+            <i class="fas fa-calendar-check"></i> Bookings
+          </a>
+          <a routerLink="/dashboard/provider" [queryParams]="{tab:'gallery'}">
+            <i class="fas fa-images"></i> Gallery
+          </a>
+          <a routerLink="/dashboard/provider" [queryParams]="{tab:'settings'}">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+        } @else {
+          <a routerLink="/search" routerLinkActive="active" [routerLinkActiveOptions]="{exact:false}">
+            <i class="fas fa-search"></i> Find Artists
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'hair'}">Hair</a>
+          <a routerLink="/search" [queryParams]="{category:'makeup'}">Makeup</a>
+          <a routerLink="/search" [queryParams]="{category:'eyelashes'}">Lashes</a>
+        }
+      </nav>
+
+
+      <!-- Desktop Actions -->
+      <div class="nav-actions">
+        @if (authService.isLoading()) {
+          <div class="nav-skeleton"></div>
+        } @else if (authService.isAuthenticated) {
+          <!-- Become Provider -->
+          @if (!authService.isProvider && !authService.isAdmin) {
+            <a routerLink="/auth/register" [queryParams]="{role:'provider'}" class="btn btn-ghost btn-sm">
+              Become an Artist
+            </a>
+          }
+
+          <!-- User Menu -->
+          <div class="user-menu-wrapper">
+            <button class="user-avatar-btn" (click)="toggleUserMenu()">
+              <div class="user-avatar">
+                {{ getInitials(authService.currentUser()?.displayName || 'U') }}
+              </div>
+              <i class="fas fa-chevron-down" [class.rotated]="userMenuOpen()"></i>
+            </button>
+
+            @if (userMenuOpen()) {
+              <div class="user-dropdown" (click)="closeMenus()">
+                <div class="dropdown-header">
+                  <div class="user-avatar-lg">
+                    {{ getInitials(authService.currentUser()?.displayName || 'U') }}
+                  </div>
+                  <div>
+                    <p class="dropdown-name">{{ authService.currentUser()?.displayName }}</p>
+                    <p class="dropdown-email">{{ authService.currentUser()?.email }}</p>
+                  </div>
+                </div>
+                <hr class="dropdown-divider">
+                @if (authService.isAdmin) {
+                  <a routerLink="/dashboard/admin" class="dropdown-item">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                  </a>
+                } @else if (authService.isProvider) {
+                  <a routerLink="/dashboard/provider" class="dropdown-item">
+                    <i class="fas fa-chart-line"></i> My Dashboard
+                  </a>
+                  <a routerLink="/dashboard/provider" [queryParams]="{tab:'bookings'}" class="dropdown-item">
+                    <i class="fas fa-calendar-check"></i> My Bookings
+                  </a>
+                  <a routerLink="/dashboard/provider" [queryParams]="{tab:'settings'}" class="dropdown-item">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                  </a>
+                } @else {
+                  <a routerLink="/dashboard/client" class="dropdown-item">
+                    <i class="fas fa-calendar-check"></i> My Bookings
+                  </a>
+                }
+                <button class="dropdown-item text-danger" (click)="logout()">
+                  <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <a routerLink="/auth/login" class="btn btn-ghost btn-sm">Sign In</a>
+          <a routerLink="/auth/register" class="btn btn-primary btn-sm">Join Free</a>
+        }
+      </div>
+
+      <!-- Mobile Toggle -->
+      <button class="mobile-toggle" (click)="toggleMobileMenu()" [class.open]="mobileMenuOpen()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (mobileMenuOpen()) {
+    <div class="mobile-menu" (click)="closeMenus()">
+      <nav class="mobile-nav">
+        @if (authService.isProvider) {
+          <a routerLink="/dashboard/provider" class="mobile-nav-item">
+            <i class="fas fa-chart-line"></i> Dashboard
+          </a>
+          <a routerLink="/dashboard/provider" [queryParams]="{tab:'bookings'}" class="mobile-nav-item">
+            <i class="fas fa-calendar-check"></i> My Bookings
+          </a>
+          <a routerLink="/dashboard/provider" [queryParams]="{tab:'gallery'}" class="mobile-nav-item">
+            <i class="fas fa-images"></i> Gallery
+          </a>
+          <a routerLink="/dashboard/provider" [queryParams]="{tab:'settings'}" class="mobile-nav-item">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+        } @else {
+          <a routerLink="/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i> Find Artists
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'hair'}" class="mobile-nav-item">
+            <i class="fas fa-scissors"></i> Hair
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'makeup'}" class="mobile-nav-item">
+            <i class="fas fa-palette"></i> Makeup
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'eyelashes'}" class="mobile-nav-item">
+            <i class="fas fa-eye"></i> Lashes
+          </a>
+        }
+
+        @if (authService.isAuthenticated) {
+          <hr class="mobile-divider">
+          @if (!authService.isProvider) {
+            <a routerLink="/auth/register" [queryParams]="{role:'provider'}" class="mobile-nav-item">
+              <i class="fas fa-paint-brush"></i> Become an Artist
+            </a>
+          }
+          <button class="mobile-nav-item text-danger" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+          </button>
+        } @else {
+          <hr class="mobile-divider">
+          <a routerLink="/auth/login" class="mobile-nav-item">Sign In</a>
+          <a routerLink="/auth/register" class="btn btn-primary w-full mt-2">Join Free</a>
+        }
+      </nav>
+    </div>
+  }
+</header>

@@ -1,0 +1,127 @@
+<div class="auth-page">
+  <div class="auth-visual">
+    <div class="auth-visual-bg"></div>
+    <div class="auth-visual-content">
+      <div class="auth-logo">
+        <div class="logo-icon"><i class="fas fa-scissors"></i></div>
+        <span>MyBraids</span>
+      </div>
+      @if (role() === 'provider') {
+        <h2>Start earning from<br>your talent today</h2>
+        <p>Join thousands of artists growing their beauty business on MyBraids.</p>
+        <ul class="visual-benefits">
+          <li><i class="fas fa-check-circle"></i> Free to join, no monthly fees</li>
+          <li><i class="fas fa-check-circle"></i> Manage bookings from your dashboard</li>
+          <li><i class="fas fa-check-circle"></i> Reach clients in 85+ countries</li>
+          <li><i class="fas fa-check-circle"></i> Verified artist badge</li>
+        </ul>
+      } @else {
+        <h2>Book beauty artists<br>anywhere in the world</h2>
+        <p>Create your free account and find your perfect beauty artist today.</p>
+        <ul class="visual-benefits">
+          <li><i class="fas fa-check-circle"></i> Free to create an account</li>
+          <li><i class="fas fa-check-circle"></i> Browse 12,000+ verified artists</li>
+          <li><i class="fas fa-check-circle"></i> Instant booking confirmation</li>
+          <li><i class="fas fa-check-circle"></i> Manage all bookings in one place</li>
+        </ul>
+      }
+    </div>
+  </div>
+
+  <div class="auth-form-side">
+    <div class="auth-form-wrap">
+      <div class="auth-header">
+        <h1>Create your account</h1>
+        <p>Join the MyBraids community today</p>
+      </div>
+
+      <!-- Role Toggle -->
+      <div class="role-toggle">
+        <button
+          class="role-btn"
+          [class.active]="role() === 'client'"
+          (click)="setRole('client')"
+        >
+          <i class="fas fa-user"></i> I'm a Client
+        </button>
+        <button
+          class="role-btn"
+          [class.active]="role() === 'provider'"
+          (click)="setRole('provider')"
+        >
+          <i class="fas fa-scissors"></i> I'm an Artist
+        </button>
+      </div>
+
+      <!-- Google Sign-In (rendered by GIS SDK) -->
+      <div #googleBtnContainer class="google-btn-container"></div>
+
+      <div class="divider"><span>or create with email</span></div>
+
+      @if (error()) {
+        <div class="form-error-banner">
+          <i class="fas fa-exclamation-circle"></i> {{ error() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onRegister()" class="auth-form">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user"></i>
+            <input type="text" class="form-control" placeholder="Your full name" [(ngModel)]="name" name="name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email address *</label>
+          <div class="input-wrapper">
+            <i class="fas fa-envelope"></i>
+            <input type="email" class="form-control" placeholder="you@example.com" [(ngModel)]="email" name="email">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              class="form-control"
+              placeholder="At least 6 characters"
+              [(ngModel)]="password"
+              name="password"
+            >
+            <button type="button" class="toggle-pw" (click)="showPassword.set(!showPassword())">
+              <i class="fas" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()"></i>
+            </button>
+          </div>
+        </div>
+
+        <label class="checkbox-label" (click)="agreeToTerms = !agreeToTerms">
+          <span class="checkmark" [class.checked]="agreeToTerms">
+            @if (agreeToTerms) {
+              <i class="fas fa-check"></i>
+            }
+          </span>
+          <span>I agree to the <a href="#" class="text-primary" (click)="$event.stopPropagation()">Terms of Service</a> and <a href="#" class="text-primary" (click)="$event.stopPropagation()">Privacy Policy</a></span>
+        </label>
+
+        <button type="submit" class="btn btn-primary w-full btn-lg" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <div class="spinner"></div> Creating account...
+          } @else {
+            @if (role() === 'provider') {
+              <i class="fas fa-paint-brush"></i> Join as Artist
+            } @else {
+              <i class="fas fa-user-plus"></i> Create Account
+            }
+          }
+        </button>
+      </form>
+
+      <p class="switch-link">
+        Already have an account?
+        <a routerLink="/auth/login">Sign in <i class="fas fa-arrow-right"></i></a>
+      </p>
+    </div>
+  </div>
+</div>

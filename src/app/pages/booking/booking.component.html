@@ -1,0 +1,319 @@
+@if (isSuccess()) {
+  <!-- Success State -->
+  <div class="success-page">
+    <div class="success-card">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2>Booking Confirmed!</h2>
+      <p>Your appointment request has been sent to <strong>{{ provider()?.name }}</strong>. You'll receive a confirmation once they accept.</p>
+      <div class="success-details">
+        <div class="success-row">
+          <i class="fas fa-scissors"></i>
+          <span>{{ selectedService()?.name }}</span>
+        </div>
+        <div class="success-row">
+          <i class="fas fa-calendar"></i>
+          <span>{{ formatDate(selectedDate()) }}</span>
+        </div>
+        <div class="success-row">
+          <i class="fas fa-clock"></i>
+          <span>{{ selectedTime() }}</span>
+        </div>
+        <div class="success-row">
+          <i class="fas fa-dollar-sign"></i>
+          <span>{{ selectedService()?.currency }} {{ selectedService()?.price }}</span>
+        </div>
+      </div>
+      <div class="success-actions">
+        <a routerLink="/dashboard/client" class="btn btn-primary btn-lg">
+          <i class="fas fa-calendar-check"></i> View My Bookings
+        </a>
+        <a routerLink="/search" class="btn btn-ghost">Browse More Artists</a>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="booking-page">
+    <div class="container">
+      <div class="booking-layout">
+
+        <!-- Main Booking Form -->
+        <div class="booking-main">
+          <!-- Back nav -->
+          <a [routerLink]="['/provider', provider()?.id]" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to profile
+          </a>
+
+          <!-- Step Indicator -->
+          <div class="step-indicator">
+            @for (step of [1,2,3,4]; track step) {
+              <div class="step-item" [class.active]="currentStep() === step" [class.done]="currentStep() > step">
+                <div class="step-circle" (click)="goToStep(step)">
+                  @if (currentStep() > step) {
+                    <i class="fas fa-check"></i>
+                  } @else {
+                    {{ step }}
+                  }
+                </div>
+                <span class="step-label">
+                  {{ step === 1 ? 'Service' : step === 2 ? 'Date & Time' : step === 3 ? 'Your Details' : 'Confirm' }}
+                </span>
+              </div>
+              @if (step < 4) { <div class="step-line" [class.done]="currentStep() > step"></div> }
+            }
+          </div>
+
+          <!-- Step 1: Select Service -->
+          @if (currentStep() === 1) {
+            <div class="step-content">
+              <h2>Choose a Service</h2>
+              <p class="step-desc">Select the service you'd like to book with {{ provider()?.name }}</p>
+              <div class="services-grid">
+                @for (service of provider()?.services; track service.id) {
+                  <div
+                    class="service-option"
+                    [class.selected]="selectedService()?.id === service.id"
+                    (click)="selectService(service)"
+                  >
+                    <div class="service-select-radio">
+                      @if (selectedService()?.id === service.id) {
+                        <i class="fas fa-check-circle"></i>
+                      } @else {
+                        <i class="far fa-circle"></i>
+                      }
+                    </div>
+                    <div class="service-details">
+                      <h4>{{ service.name }}</h4>
+                      <p>{{ service.description }}</p>
+                      <span class="service-duration"><i class="fas fa-clock"></i> {{ service.duration }} min</span>
+                    </div>
+                    <div class="service-price-tag">
+                      {{ service.currency }} {{ service.price }}
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Step 2: Date & Time -->
+          @if (currentStep() === 2) {
+            <div class="step-content">
+              <h2>Pick a Date & Time</h2>
+              <p class="step-desc">Choose when you'd like your appointment</p>
+
+              <!-- Availability schedule -->
+              <div class="avail-week">
+                @for (d of availabilityDays(); track d.day) {
+                  <div class="avail-day-chip" [class.open]="d.open" [class.closed]="!d.open">
+                    <span class="avail-day-label">{{ d.label }}</span>
+                    @if (d.open) {
+                      <span class="avail-hours">{{ d.openTime }} – {{ d.closeTime }}</span>
+                    } @else {
+                      <span class="avail-closed-label">Closed</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="datetime-grid">
+                <div class="form-group">
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    [min]="minDate"
+                    [(ngModel)]="selectedDate"
+                    (change)="onDateChange()"
+                  >
+                </div>
+
+                @if (selectedDate() && availableTimeSlots().length > 0) {
+                  <div class="form-group">
+                    <label>Available Time Slots</label>
+                    <div class="time-grid">
+                      @for (time of availableTimeSlots(); track time) {
+                        <button
+                          class="time-slot"
+                          [class.selected]="selectedTime() === time"
+                          (click)="selectedTime.set(time)"
+                        >
+                          {{ time }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (selectedDate() && availableTimeSlots().length === 0) {
+                  <div class="no-slots">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>This artist is not available on that day. Check the schedule above and pick an open day.</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Step 3: Details -->
+          @if (currentStep() === 3) {
+            <div class="step-content">
+              <h2>Your Details</h2>
+              <p class="step-desc">Tell us a bit about yourself and any special requests</p>
+              <div class="details-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" class="form-control" [(ngModel)]="clientName" placeholder="Your full name">
+                  </div>
+                  <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" class="form-control" [(ngModel)]="clientEmail" placeholder="your@email.com">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" class="form-control" [(ngModel)]="clientPhone" placeholder="+1 555 000 0000">
+                </div>
+                <div class="form-group">
+                  <label>Special Requests or Notes</label>
+                  <textarea class="form-control" [(ngModel)]="notes" placeholder="Any specific styles, hair length, references etc."></textarea>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Step 4: Review -->
+          @if (currentStep() === 4) {
+            <div class="step-content">
+              <h2>Review Your Booking</h2>
+              <p class="step-desc">Please review all details before confirming</p>
+              <div class="review-summary">
+                <div class="summary-section">
+                  <h4>Service</h4>
+                  <div class="summary-row">
+                    <span>{{ selectedService()?.name }}</span>
+                    <span class="summary-price">{{ selectedService()?.currency }} {{ selectedService()?.price }}</span>
+                  </div>
+                  <div class="summary-row muted">
+                    <span>Duration</span>
+                    <span>{{ selectedService()?.duration }} minutes</span>
+                  </div>
+                </div>
+                <div class="summary-section">
+                  <h4>Appointment</h4>
+                  <div class="summary-row">
+                    <span>Date</span>
+                    <span>{{ formatDate(selectedDate()) }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Time</span>
+                    <span>{{ selectedTime() }}</span>
+                  </div>
+                </div>
+                <div class="summary-section">
+                  <h4>Your Info</h4>
+                  <div class="summary-row">
+                    <span>Name</span>
+                    <span>{{ clientName }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Email</span>
+                    <span>{{ clientEmail }}</span>
+                  </div>
+                  @if (clientPhone) {
+                    <div class="summary-row">
+                      <span>Phone</span>
+                      <span>{{ clientPhone }}</span>
+                    </div>
+                  }
+                  @if (notes) {
+                    <div class="summary-row">
+                      <span>Notes</span>
+                      <span>{{ notes }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="summary-total">
+                  <span>Total</span>
+                  <span class="total-amount">{{ selectedService()?.currency }} {{ selectedService()?.price }}</span>
+                </div>
+                <p class="summary-notice">
+                  <i class="fas fa-info-circle"></i>
+                  Payment is collected directly with the artist at the time of your appointment.
+                </p>
+              </div>
+            </div>
+          }
+
+          <!-- Navigation -->
+          <div class="booking-nav">
+            @if (currentStep() > 1) {
+              <button class="btn btn-ghost" (click)="prevStep()">
+                <i class="fas fa-arrow-left"></i> Back
+              </button>
+            } @else {
+              <div></div>
+            }
+
+            @if (currentStep() < 4) {
+              <button class="btn btn-primary" [disabled]="!canProceed()" (click)="nextStep()">
+                Continue <i class="fas fa-arrow-right"></i>
+              </button>
+            } @else {
+              <button class="btn btn-primary btn-lg" [disabled]="isSubmitting()" (click)="confirmBooking()">
+                @if (isSubmitting()) {
+                  <div class="spinner"></div> Processing...
+                } @else {
+                  <i class="fas fa-check-circle"></i> Confirm Booking
+                }
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Provider Summary Sidebar -->
+        <aside class="booking-sidebar">
+          @if (provider()) {
+            <div class="booking-artist-card">
+              <h4>Your Artist</h4>
+              <div class="artist-preview">
+                <div class="artist-avatar" [style.background]="getGradient()">{{ getInitials() }}</div>
+                <div>
+                  <p class="artist-name">{{ provider()!.name }}</p>
+                  <p class="artist-loc"><i class="fas fa-location-dot"></i> {{ provider()!.location.city }}, {{ provider()!.location.country }}</p>
+                  <div class="artist-rating">
+                    <i class="fas fa-star"></i>
+                    {{ provider()!.rating }} ({{ provider()!.reviewCount }})
+                  </div>
+                </div>
+              </div>
+              @if (selectedService()) {
+                <div class="selected-service-preview">
+                  <div class="ssp-header">Selected Service</div>
+                  <p class="ssp-name">{{ selectedService()!.name }}</p>
+                  <div class="ssp-meta">
+                    <span><i class="fas fa-clock"></i> {{ selectedService()!.duration }} min</span>
+                    <span class="ssp-price">{{ selectedService()!.currency }} {{ selectedService()!.price }}</span>
+                  </div>
+                </div>
+              }
+              @if (selectedDate() && selectedTime()) {
+                <div class="selected-datetime-preview">
+                  <div class="sdp-row"><i class="fas fa-calendar"></i> {{ formatDate(selectedDate()) }}</div>
+                  <div class="sdp-row"><i class="fas fa-clock"></i> {{ selectedTime() }}</div>
+                </div>
+              }
+            </div>
+            <div class="trust-card">
+              <div class="trust-row"><i class="fas fa-shield-check"></i> <span>Verified artist profile</span></div>
+              <div class="trust-row"><i class="fas fa-lock"></i> <span>Secure booking process</span></div>
+              <div class="trust-row"><i class="fas fa-calendar-times"></i> <span>Free cancellation (48h notice)</span></div>
+            </div>
+          }
+        </aside>
+      </div>
+    </div>
+  </div>
+}

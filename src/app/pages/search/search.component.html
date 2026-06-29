@@ -1,0 +1,214 @@
+<!-- Search Header -->
+<div class="search-header">
+  <div class="container">
+    <div class="search-bar-row">
+      <div class="search-input-group">
+        <div class="search-input-field search-input-field-ac">
+          <app-location-autocomplete
+            placeholder="City, country or region…"
+            icon="fa-location-dot"
+            mode="location"
+            [value]="filters.location ?? ''"
+            (valueChange)="filters.location = $event"
+            (selected)="runSearch()"
+          />
+        </div>
+        <div class="search-divider-v"></div>
+        <div class="search-input-field">
+          <i class="fas fa-scissors"></i>
+          <select [(ngModel)]="filters.category" (change)="runSearch()">
+            <option value="">All Services</option>
+            @for (cat of categories; track cat.value) {
+              <option [value]="cat.value">{{ cat.label }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn btn-primary" (click)="runSearch()">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters">
+      @if (filters.location) {
+        <span class="filter-chip">
+          <i class="fas fa-location-dot"></i> {{ filters.location }}
+          <button (click)="filters.location = ''; runSearch()">×</button>
+        </span>
+      }
+      @if (filters.category) {
+        <span class="filter-chip">
+          <i class="fas fa-tag"></i> {{ getCategoryLabel(filters.category) }}
+          <button (click)="filters.category = ''; runSearch()">×</button>
+        </span>
+      }
+      @if (filters.minRating) {
+        <span class="filter-chip">
+          <i class="fas fa-star"></i> {{ filters.minRating }}★+
+          <button (click)="filters.minRating = 0; runSearch()">×</button>
+        </span>
+      }
+      @if (activeFilterCount > 0) {
+        <button class="clear-all-btn" (click)="clearFilters()">Clear all</button>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="search-body">
+  <div class="container">
+    <div class="search-layout">
+
+      <!-- Sidebar Filters -->
+      <aside class="filters-sidebar" [class.mobile-open]="showFilters()">
+        <div class="filter-header">
+          <h3><i class="fas fa-sliders"></i> Filters</h3>
+          <button class="mobile-close-btn" (click)="showFilters.set(false)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <h4>Service Type</h4>
+          <div class="filter-options">
+            <label class="radio-opt" [class.checked]="!filters.category">
+              <input type="radio" [(ngModel)]="filters.category" value="" (change)="runSearch()">
+              <span class="radio-mark"></span>
+              <span class="radio-label">All Services</span>
+            </label>
+            @for (cat of categories; track cat.value) {
+              <label class="radio-opt" [class.checked]="filters.category === cat.value">
+                <input type="radio" [(ngModel)]="filters.category" [value]="cat.value" (change)="runSearch()">
+                <span class="radio-mark"></span>
+                <span class="radio-label">
+                  <i class="fas {{ cat.icon }}" [style.color]="cat.color"></i>
+                  {{ cat.label }}
+                </span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <hr class="filter-divider">
+
+        <!-- Rating Filter -->
+        <div class="filter-group">
+          <h4>Minimum Rating</h4>
+          <div class="filter-options">
+            @for (opt of ratingOptions; track opt.value) {
+              <label class="radio-opt" [class.checked]="filters.minRating === opt.value">
+                <input type="radio" [(ngModel)]="filters.minRating" [value]="opt.value" (change)="runSearch()">
+                <span class="radio-mark"></span>
+                <span class="radio-label">{{ opt.label }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <hr class="filter-divider">
+
+        <!-- Price Filter -->
+        <div class="filter-group">
+          <h4>Max Starting Price (USD)</h4>
+          <div class="price-range">
+            <input
+              type="range"
+              min="20"
+              max="500"
+              step="10"
+              [(ngModel)]="filters.maxPrice"
+              (change)="runSearch()"
+              class="range-slider"
+            >
+            <div class="price-labels">
+              <span>$20</span>
+              <span class="price-val">{{ filters.maxPrice ? '$' + filters.maxPrice : 'Any' }}</span>
+              <span>$500+</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-outline w-full" (click)="clearFilters()">
+          <i class="fas fa-rotate-left"></i> Reset Filters
+        </button>
+      </aside>
+
+      <!-- Results -->
+      <div class="results-area">
+        <!-- Results Header -->
+        <div class="results-header">
+          <div class="results-meta">
+            @if (isLoading()) {
+              <span class="result-count">Searching...</span>
+            } @else {
+              <span class="result-count">
+                <strong>{{ providers().length }}</strong>
+                {{ providers().length === 1 ? 'artist' : 'artists' }} found
+              </span>
+            }
+          </div>
+
+          <div class="results-actions">
+            <button class="filter-toggle-btn" (click)="showFilters.set(!showFilters())">
+              <i class="fas fa-sliders"></i>
+              Filters
+              @if (activeFilterCount > 0) {
+                <span class="filter-badge">{{ activeFilterCount }}</span>
+              }
+            </button>
+
+            <div class="sort-select-wrapper">
+              <i class="fas fa-sort"></i>
+              <select [(ngModel)]="filters.sortBy" (change)="runSearch()">
+                @for (opt of sortOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Provider Grid -->
+        @if (isLoading()) {
+          <div class="grid-3">
+            @for (n of getSkeletonArray(); track n) {
+              <div class="skeleton-card">
+                <div class="skeleton" style="height: 200px; border-radius: 12px 12px 0 0;"></div>
+                <div class="skeleton-body">
+                  <div class="skeleton" style="height: 20px; width: 70%; border-radius: 6px;"></div>
+                  <div class="skeleton" style="height: 14px; width: 50%; border-radius: 6px;"></div>
+                  <div class="skeleton" style="height: 14px; width: 80%; border-radius: 6px;"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (providers().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <h3>No artists found</h3>
+            <p>Try adjusting your search filters or searching in a different location.</p>
+            <button class="btn btn-primary" (click)="clearFilters()">
+              <i class="fas fa-rotate-left"></i> Clear Filters
+            </button>
+          </div>
+        } @else {
+          <div class="grid-3">
+            @for (provider of providers(); track provider.id; let i = $index) {
+              <app-provider-card [provider]="provider" [index]="i" />
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile filter overlay -->
+@if (showFilters()) {
+  <div class="overlay" (click)="showFilters.set(false)"></div>
+}

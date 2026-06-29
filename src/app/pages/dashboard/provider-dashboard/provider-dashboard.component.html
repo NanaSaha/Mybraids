@@ -1,0 +1,478 @@
+<div class="dashboard-page">
+  <!-- Header -->
+  <div class="provider-header">
+    <div class="ph-bg"></div>
+    <div class="container">
+      <div class="ph-inner">
+        <div class="ph-profile">
+          <label class="ph-avatar-wrap" for="profile-pic-input" title="Change profile picture">
+            @if (profileImage()) {
+              <img class="ph-avatar-img" [src]="profileImage()" alt="Profile photo">
+            } @else {
+              <div class="ph-avatar">{{ getInitials() }}</div>
+            }
+            <div class="ph-avatar-overlay">
+              @if (isUploadingAvatar()) {
+                <div class="spinner spinner-sm"></div>
+              } @else {
+                <i class="fas fa-camera"></i>
+              }
+            </div>
+          </label>
+          <input id="profile-pic-input" type="file" accept="image/*" class="hidden" (change)="onProfileImageSelect($event)">
+          <div>
+            <h1>{{ authService.currentUser()?.displayName }}</h1>
+            <p class="ph-role"><span class="badge badge-secondary"><i class="fas fa-scissors"></i> Artist Dashboard</span></p>
+            <p class="ph-avatar-hint">Click photo to update</p>
+          </div>
+        </div>
+        <div class="ph-actions">
+          @if (providerId()) {
+            <a [routerLink]="['/provider', providerId()]" target="_blank" class="btn btn-white btn-sm">
+              <i class="fas fa-eye"></i> Preview Profile
+            </a>
+          }
+        </div>
+      </div>
+
+      <!-- Dashboard Tabs -->
+      <div class="dash-tabs">
+        <button class="dash-tab" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">
+          <i class="fas fa-chart-line"></i> Overview
+        </button>
+        <button class="dash-tab" [class.active]="activeTab() === 'bookings'" (click)="activeTab.set('bookings')">
+          <i class="fas fa-calendar"></i> Bookings
+        </button>
+        <button class="dash-tab" [class.active]="activeTab() === 'services'" (click)="activeTab.set('services')">
+          <i class="fas fa-tags"></i> Services
+        </button>
+        <button class="dash-tab" [class.active]="activeTab() === 'gallery'" (click)="activeTab.set('gallery')">
+          <i class="fas fa-images"></i> Portfolio
+        </button>
+        <button class="dash-tab" [class.active]="activeTab() === 'settings'" (click)="activeTab.set('settings')">
+          <i class="fas fa-cog"></i> Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="container dash-content">
+
+    <!-- Location missing banner -->
+    @if (!hasLocation() && !locationBannerDismissed()) {
+      <div class="location-banner">
+        <div class="location-banner-icon"><i class="fas fa-location-dot"></i></div>
+        <div class="location-banner-body">
+          <strong>Add your city to appear in location searches</strong>
+          <span>Clients search by city — providers without a location won't show up in those results.</span>
+        </div>
+        <button class="location-banner-cta" (click)="activeTab.set('settings')">
+          Add Location
+        </button>
+        <button class="location-banner-close" (click)="locationBannerDismissed.set(true)">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    }
+
+    <!-- Overview Tab -->
+    @if (activeTab() === 'overview') {
+      <div class="overview-grid">
+        <!-- Stats -->
+        <div class="stats-row">
+          @for (stat of stats; track stat.label) {
+            <div class="stat-card">
+              <div class="sc-icon" [class]="'sc-' + stat.color"><i class="fas {{ stat.icon }}"></i></div>
+              <div class="sc-info">
+                <span class="sc-value">{{ stat.value }}</span>
+                <span class="sc-label">{{ stat.label }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="overview-card">
+          <div class="card-header">
+            <h3>Recent Bookings</h3>
+            <button class="btn btn-ghost btn-sm" (click)="activeTab.set('bookings')">View all</button>
+          </div>
+          @for (booking of bookings().slice(0, 3); track booking.id) {
+            <div class="mini-booking">
+              <div class="mb-avatar">{{ booking.clientName[0] }}</div>
+              <div class="mb-info">
+                <p class="mb-name">{{ booking.clientName }}</p>
+                <p class="mb-service">{{ booking.serviceName }}</p>
+              </div>
+              <div class="mb-date">
+                <p>{{ booking.date }}</p>
+                <p class="mb-time">{{ booking.time }}</p>
+              </div>
+              <span class="status-badge" [class]="getStatusClass(booking.status)">{{ booking.status }}</span>
+              <span class="mb-price">{{ booking.currency }} {{ booking.servicePrice }}</span>
+            </div>
+          }
+          @if (bookings().length === 0) {
+            <p style="padding: 16px; color: var(--text-muted); font-size: 0.875rem;">No bookings yet.</p>
+          }
+        </div>
+
+        <!-- Quick Profile Tips -->
+        <div class="overview-card tips-card">
+          <h3>Grow Your Bookings</h3>
+          <div class="tip-list">
+            <div class="tip-item">
+              <div class="tip-icon"><i class="fas fa-images"></i></div>
+              <div>
+                <p class="tip-title">Upload 6+ portfolio photos</p>
+                <p class="tip-desc">Artists with full galleries get 3x more bookings</p>
+              </div>
+              <button class="btn btn-ghost btn-sm" (click)="activeTab.set('gallery')">Add Photos</button>
+            </div>
+            <div class="tip-item">
+              <div class="tip-icon"><i class="fas fa-calendar"></i></div>
+              <div>
+                <p class="tip-title">Set your availability</p>
+                <p class="tip-desc">Clients can only book when you're available</p>
+              </div>
+              <button class="btn btn-ghost btn-sm" (click)="activeTab.set('settings')">Set Hours</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Bookings Tab -->
+    @if (activeTab() === 'bookings') {
+      <div class="bookings-section">
+        <div class="section-header-row">
+          <h2>All Bookings</h2>
+        </div>
+        @if (bookings().length === 0) {
+          <div class="empty-bookings">
+            <i class="fas fa-calendar-times"></i>
+            <p>No bookings yet. Clients will appear here once they book your services.</p>
+          </div>
+        }
+        @for (booking of bookings(); track booking.id) {
+          <div class="booking-card">
+            <div class="booking-artist-info">
+              <div class="ba-avatar prov">{{ booking.clientName[0] }}</div>
+              <div>
+                <h4>{{ booking.clientName }}</h4>
+                <p class="ba-service">{{ booking.serviceName }}</p>
+              </div>
+            </div>
+            <div class="booking-date-info">
+              <div class="bd-item"><i class="fas fa-calendar"></i> {{ formatDate(booking.date) }}</div>
+              <div class="bd-item"><i class="fas fa-clock"></i> {{ booking.time }}</div>
+            </div>
+            <div class="booking-price">{{ booking.currency }} {{ booking.servicePrice }}</div>
+            <span class="status-badge" [class]="getStatusClass(booking.status)">{{ booking.status }}</span>
+            <div class="booking-actions">
+              @if (booking.status === 'pending') {
+                <button class="btn btn-primary btn-sm" (click)="updateBookingStatus(booking.id, 'confirmed')">Confirm</button>
+                <button class="btn btn-ghost btn-sm" (click)="updateBookingStatus(booking.id, 'cancelled')">Decline</button>
+              }
+              @if (booking.status === 'confirmed') {
+                <button class="btn btn-primary btn-sm" (click)="updateBookingStatus(booking.id, 'completed')">Mark Complete</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Services Tab -->
+    @if (activeTab() === 'services') {
+      <div class="services-tab">
+
+        <!-- Header row -->
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Services &amp; Pricing</h2>
+            <p class="section-sub">Add your services so clients know what you offer and what it costs.</p>
+          </div>
+          @if (!showServiceForm()) {
+            <button class="btn btn-primary" (click)="openAddService()">
+              <i class="fas fa-plus"></i> Add Service
+            </button>
+          }
+        </div>
+
+        <!-- Add / Edit form -->
+        @if (showServiceForm()) {
+          <div class="service-form-card">
+            <h3 class="form-card-title">
+              <i class="fas fa-{{ editingServiceId() ? 'pen' : 'plus-circle' }}"></i>
+              {{ editingServiceId() ? 'Edit Service' : 'New Service' }}
+            </h3>
+
+            <div class="form-grid">
+              <div class="form-group form-full">
+                <label>Service Name <span class="required">*</span></label>
+                <input type="text" [(ngModel)]="serviceForm.name" placeholder="e.g. Box Braids, Full Face Makeup, Classic Lashes" class="form-control">
+              </div>
+
+              <div class="form-group form-full">
+                <label>Description</label>
+                <textarea [(ngModel)]="serviceForm.description" rows="3" placeholder="What's included? Any important notes for clients?" class="form-control"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Duration</label>
+                <select [(ngModel)]="serviceForm.duration" class="form-control">
+                  @for (d of durations; track d) {
+                    <option [value]="d">{{ formatDuration(d) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group price-row">
+                <label>Price <span class="required">*</span></label>
+                <div class="price-input-wrap">
+                  <select [(ngModel)]="serviceForm.currency" class="currency-select form-control">
+                    @for (c of currencies; track c) {
+                      <option [value]="c">{{ c }}</option>
+                    }
+                  </select>
+                  <input type="number" [(ngModel)]="serviceForm.price" min="1" step="0.01" placeholder="0.00" class="form-control price-input">
+                </div>
+              </div>
+            </div>
+
+            @if (serviceError()) {
+              <p class="form-error"><i class="fas fa-exclamation-circle"></i> {{ serviceError() }}</p>
+            }
+
+            <div class="form-actions">
+              <button class="btn btn-ghost" (click)="cancelServiceForm()">Cancel</button>
+              <button class="btn btn-primary" (click)="saveService()" [disabled]="serviceSaving()">
+                @if (serviceSaving()) { <span class="spinner spinner-sm"></span> Saving… }
+                @else { <i class="fas fa-check"></i> {{ editingServiceId() ? 'Save Changes' : 'Add Service' }} }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Services list -->
+        @if (services().length === 0 && !showServiceForm()) {
+          <div class="services-empty">
+            <div class="empty-icon"><i class="fas fa-tags"></i></div>
+            <h3>No services yet</h3>
+            <p>Add your first service so clients can see what you offer and book appointments.</p>
+            <button class="btn btn-primary" (click)="openAddService()">
+              <i class="fas fa-plus"></i> Add Your First Service
+            </button>
+          </div>
+        }
+
+        @if (services().length > 0) {
+          <div class="services-list">
+            @for (s of services(); track s.id) {
+              <div class="service-row">
+                <div class="service-row-info">
+                  <h4 class="service-row-name">{{ s.name }}</h4>
+                  @if (s.description) {
+                    <p class="service-row-desc">{{ s.description }}</p>
+                  }
+                  <div class="service-row-meta">
+                    <span class="meta-pill"><i class="fas fa-clock"></i> {{ formatDuration(s.duration) }}</span>
+                  </div>
+                </div>
+                <div class="service-row-right">
+                  <span class="service-price">{{ s.currency }} {{ s.price | number:'1.2-2' }}</span>
+                  <div class="service-actions">
+                    <button class="btn btn-ghost btn-sm" (click)="openEditService(s)" title="Edit">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn btn-ghost btn-sm btn-danger" (click)="deleteService(s.id)" title="Remove">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Gallery Tab -->
+    @if (activeTab() === 'gallery') {
+      <div class="gallery-section">
+        <div class="section-header-row">
+          <h2>Portfolio Gallery</h2>
+          <label class="btn btn-primary" for="gallery-upload">
+            <i class="fas fa-plus"></i> Add Photos
+          </label>
+          <input id="gallery-upload" type="file" accept="image/*" class="hidden" (change)="onFileSelect($event)">
+        </div>
+        @if (uploadError()) {
+          <div class="form-error-banner mb-4"><i class="fas fa-exclamation-circle"></i> {{ uploadError() }}</div>
+        }
+        <div class="gallery-upload-grid">
+          @for (img of galleryImages(); track img; let i = $index) {
+            <div class="gallery-img-wrap">
+              <img [src]="img" alt="Portfolio image">
+              <button class="remove-img-btn" (click)="removeGalleryImage(i)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          }
+          @if (galleryImages().length === 0) {
+            <div class="gallery-empty">
+              <label for="gallery-upload" class="gallery-upload-prompt">
+                <i class="fas fa-camera"></i>
+                <p>Click to upload your first photo</p>
+                <span>JPG, PNG, WebP up to 5MB</span>
+              </label>
+            </div>
+          }
+        </div>
+        @if (uploadError()) {
+          <p class="upload-error">{{ uploadError() }}</p>
+        }
+        @if (galleryImages().length > 0) {
+          <button class="btn btn-primary" (click)="saveSettings()" [disabled]="isSaving()">
+            @if (isSaving()) { <div class="spinner"></div> Saving... }
+            @else { <i class="fas fa-save"></i> Save Gallery }
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Settings Tab -->
+    @if (activeTab() === 'settings') {
+      <div class="settings-section">
+        <div class="settings-grid">
+
+          <!-- Profile Picture -->
+          <div class="settings-card profile-pic-card">
+            <h3>Profile Picture</h3>
+            <div class="profile-pic-section">
+              <div class="profile-pic-preview">
+                @if (profileImage()) {
+                  <img [src]="profileImage()" alt="Profile picture">
+                } @else {
+                  <div class="profile-pic-placeholder">{{ getInitials() }}</div>
+                }
+              </div>
+              <div class="profile-pic-actions">
+                <p class="profile-pic-hint">A clear face photo helps clients recognise and trust you.</p>
+                <label class="btn btn-primary btn-sm" for="profile-pic-settings">
+                  @if (isUploadingAvatar()) {
+                    <div class="spinner spinner-sm"></div> Uploading...
+                  } @else {
+                    <i class="fas fa-upload"></i> Upload Photo
+                  }
+                </label>
+                <input id="profile-pic-settings" type="file" accept="image/*" class="hidden" (change)="onProfileImageSelect($event)">
+                <p class="profile-pic-format">JPG, PNG or WebP · Max 5 MB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Info -->
+          <div class="settings-card">
+            <h3>Profile Information</h3>
+            <div class="form-group">
+              <label>Bio</label>
+              <textarea class="form-control" [(ngModel)]="profileForm.bio" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Tagline</label>
+              <input type="text" class="form-control" [(ngModel)]="profileForm.tagline">
+            </div>
+            <div class="form-group">
+              <label>Service Category</label>
+              <select class="form-control" [(ngModel)]="profileForm.category">
+                @for (cat of categories; track cat.value) {
+                  <option [value]="cat.value">{{ cat.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>City <span class="label-required">Required for search</span></label>
+                <div class="form-control form-control-ac" [class.input-missing]="!profileForm.city">
+                  <app-location-autocomplete
+                    mode="city"
+                    placeholder="e.g. Lagos"
+                    icon="fa-city"
+                    [value]="profileForm.city"
+                    [countryFilter]="profileForm.country"
+                    (valueChange)="profileForm.city = $event"
+                  />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Country <span class="label-required">Required for search</span></label>
+                <div class="form-control form-control-ac" [class.input-missing]="!profileForm.country">
+                  <app-location-autocomplete
+                    mode="country"
+                    placeholder="e.g. Nigeria"
+                    icon="fa-globe"
+                    [value]="profileForm.country"
+                    (valueChange)="profileForm.country = $event"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Instagram Handle</label>
+              <input type="text" class="form-control" [(ngModel)]="profileForm.instagram" placeholder="@youraccount">
+            </div>
+          </div>
+
+          <!-- Availability -->
+          <div class="settings-card">
+            <h3>Availability Hours</h3>
+            <div class="avail-editor">
+              @for (day of availabilityDays; track day) {
+                <div class="avail-editor-row">
+                  <div class="avail-day-toggle">
+                    <label class="toggle-switch">
+                      <input type="checkbox" [(ngModel)]="getAvailabilitySlot(day).available">
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span class="avail-day-name">{{ dayLabels[day] }}</span>
+                  </div>
+                  @if (getAvailabilitySlot(day).available) {
+                    <div class="avail-time-inputs">
+                      <input type="time" class="form-control time-input" [(ngModel)]="getAvailabilitySlot(day).open">
+                      <span>to</span>
+                      <input type="time" class="form-control time-input" [(ngModel)]="getAvailabilitySlot(day).close">
+                    </div>
+                  } @else {
+                    <span class="avail-closed-label">Closed</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          @if (saveSuccess()) {
+            <div class="save-success">
+              <i class="fas fa-check-circle"></i> Settings saved successfully!
+            </div>
+          }
+          @if (uploadError()) {
+            <div class="save-error">
+              <i class="fas fa-exclamation-circle"></i> {{ uploadError() }}
+            </div>
+          }
+          <button class="btn btn-primary btn-lg" (click)="saveSettings()" [disabled]="isSaving()">
+            @if (isSaving()) { <div class="spinner"></div> Saving... }
+            @else { <i class="fas fa-save"></i> Save All Settings }
+          </button>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

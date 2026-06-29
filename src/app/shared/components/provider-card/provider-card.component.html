@@ -1,0 +1,78 @@
+<article class="provider-card card" [routerLink]="['/provider', provider.id]">
+
+  <!-- Card Header / Image area -->
+  <div class="card-image">
+    @if (provider.profileImage) {
+      <img class="avatar-photo" [src]="provider.profileImage" [alt]="provider.name" loading="lazy">
+    } @else {
+      <div class="avatar-display" [style.background]="gradient">
+        <span class="avatar-initials">{{ initials }}</span>
+      </div>
+    }
+
+    <!-- Badges -->
+    <div class="card-badges">
+      @if (provider.verified) {
+        <span class="badge badge-dark"><i class="fas fa-shield-check"></i> Verified</span>
+      }
+      @if (provider.featured) {
+        <span class="badge badge-secondary"><i class="fas fa-star"></i> Featured</span>
+      }
+    </div>
+
+    <!-- Category chip -->
+    <div class="category-chip">
+      <i class="fas {{ categoryIcon }}"></i>
+      <span>{{ categoryLabel }}</span>
+    </div>
+  </div>
+
+  <!-- Card Body -->
+  <div class="card-body">
+    <div class="provider-header">
+      <h3 class="provider-name">{{ provider.name }}</h3>
+      <div class="rating-row">
+        <div class="stars">
+          @for (star of stars; track star) {
+            <i class="fas"
+               [class.fa-star]="isStarFilled(star)"
+               [class.fa-star-half-stroke]="isStarHalf(star)"
+               [class.fa-star-o]="!isStarFilled(star) && !isStarHalf(star)">
+            </i>
+          }
+        </div>
+        <span class="rating-value">{{ provider.rating }}</span>
+        <span class="review-count">({{ provider.reviewCount }})</span>
+      </div>
+    </div>
+
+    <p class="provider-tagline">{{ provider.tagline }}</p>
+
+    <div class="provider-location">
+      <i class="fas fa-location-dot"></i>
+      <span>{{ provider.location.city }}, {{ provider.location.country }}</span>
+    </div>
+
+    <!-- Specialties -->
+    <div class="specialties">
+      @for (spec of provider.specialties.slice(0, 3); track spec) {
+        <span class="specialty-tag">{{ spec }}</span>
+      }
+      @if (provider.specialties.length > 3) {
+        <span class="specialty-tag specialty-more">+{{ provider.specialties.length - 3 }}</span>
+      }
+    </div>
+  </div>
+
+  <!-- Card Footer -->
+  <div class="card-footer">
+    <div class="price-info">
+      <span class="price-label">From</span>
+      <span class="price-value">{{ provider.currency }} {{ provider.startingPrice }}</span>
+    </div>
+    <button class="btn btn-primary btn-sm" [routerLink]="['/provider', provider.id]" (click)="$event.stopPropagation()">
+      Book Now
+    </button>
+  </div>
+
+</article>

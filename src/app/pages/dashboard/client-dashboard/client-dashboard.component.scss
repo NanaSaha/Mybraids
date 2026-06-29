@@ -1,0 +1,301 @@
+.dashboard-page {
+  min-height: 100vh;
+  background: var(--light-bg);
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #1C0A00 0%, #3D1A08 100%);
+  padding: 96px 0 32px;
+
+  .dh-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    h1 { color: white; margin-bottom: 6px; }
+    p { color: rgba(255,255,255,0.55); font-size: 0.95rem; }
+  }
+}
+
+.dashboard-body {
+  padding: 32px 0 80px;
+}
+
+/* Stats */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.dash-stat {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  border: 1.5px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ds-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--primary-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--primary);
+
+  &.upcoming { background: var(--secondary-pale); color: var(--secondary-dark); }
+  &.completed { background: var(--sage-pale); color: var(--sage); }
+}
+
+.ds-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.ds-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Section Tabs */
+.section-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  margin-bottom: 20px;
+  border: 1.5px solid var(--border-light);
+  width: fit-content;
+}
+
+.tab {
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+
+  &.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-primary);
+  }
+
+  &:hover:not(.active) { color: var(--text); background: var(--light-bg); }
+}
+
+/* Empty */
+.empty-bookings {
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--border-light);
+
+  i { font-size: 2.5rem; color: var(--primary); opacity: 0.4; display: block; margin-bottom: 16px; }
+  h3 { margin-bottom: 8px; }
+  p { color: var(--text-muted); margin-bottom: 24px; }
+}
+
+/* Bookings List */
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.booking-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  border: 1.5px solid var(--border-light);
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto auto;
+  gap: 20px;
+  align-items: center;
+  transition: var(--transition);
+
+  &:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+
+  &.faded { opacity: 0.7; }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  @media (max-width: 580px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.booking-artist-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
+}
+
+.ba-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ba-service {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.booking-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bd-item {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i { color: var(--primary); width: 12px; font-size: 0.78rem; }
+}
+
+.booking-price {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.status-pending { background: var(--secondary-pale); color: var(--secondary-dark); }
+  &.status-confirmed { background: var(--sage-pale); color: var(--sage); }
+  &.status-cancelled { background: #FFEBEE; color: #C62828; }
+  &.status-completed { background: var(--primary-pale); color: var(--primary); }
+}
+
+.booking-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cancel-btn {
+  border: 1.5px solid #FFCDD2;
+  color: #C62828;
+  background: transparent;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover { background: #FFEBEE; }
+}
+
+.review-form {
+  margin-top: 16px;
+  padding: 20px;
+  background: var(--light-bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.review-form-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.star-picker {
+  display: flex;
+  gap: 6px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem;
+  color: var(--border);
+  padding: 2px;
+  transition: color 0.15s, transform 0.1s;
+
+  &.filled { color: var(--secondary); }
+  &:hover { color: var(--secondary); transform: scale(1.15); }
+}
+
+.review-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-size: 0.9rem;
+}
+
+.review-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.review-error {
+  color: #C62828;
+  font-size: 0.825rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.review-done {
+  font-size: 0.825rem;
+  color: #2E7D32;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
