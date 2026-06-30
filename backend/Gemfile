@@ -20,4 +20,5 @@ gem 'cloudinary', '~> 1.28'
 gem 'dotenv',    '~> 2.8'
 gem 'rack-cors', '~> 2.0'
 
-# Email delivery via Resend HTTP API (uses stdlib net/http — no extra gem needed)
+# Email
+gem 'mail', '~> 2.8'

@@ -1,38 +1,47 @@
-require 'net/http'
-require 'uri'
-require 'json'
+require 'mail'
 
-# Central delivery via Resend HTTP API (HTTPS, no SMTP ports needed).
-# Set RESEND_API_KEY in Render environment variables.
-# Set FROM_EMAIL to a verified sender address on your Resend account.
+# Central SMTP delivery module.
+# Works with any SMTP provider — Gmail, Brevo, Mailjet, SMTP2GO, etc.
+# Set these in Render environment variables:
+#   SMTP_HOST      e.g. smtp-relay.brevo.com
+#   SMTP_PORT      587
+#   SMTP_USERNAME  your SMTP login
+#   SMTP_PASSWORD  your SMTP password / API key
+#   FROM_EMAIL     e.g. MyBraids <noreply@mybraids.com>
+#   ADMIN_EMAIL    admin@example.com
 module Mailer
-  API_URI = URI('https://api.resend.com/emails').freeze
+  def self.smtp_settings
+    {
+      address:              ENV.fetch('SMTP_HOST',     'smtp-relay.brevo.com'),
+      port:                 ENV.fetch('SMTP_PORT',     '587').to_i,
+      user_name:            ENV.fetch('SMTP_USERNAME', ''),
+      password:             ENV.fetch('SMTP_PASSWORD', ''),
+      authentication:       :plain,
+      enable_starttls_auto: true,
+      open_timeout:         30,
+      read_timeout:         60,
+    }
+  end
 
   def self.deliver(to:, subject:, html:)
-    api_key = ENV['RESEND_API_KEY'].to_s.strip
-    if api_key.empty?
-      puts "[Mailer] RESEND_API_KEY not set — skipping email to #{to}"
+    from = ENV.fetch('FROM_EMAIL', 'MyBraids <noreply@mybraids.com>')
+
+    settings = smtp_settings
+    if settings[:user_name].empty?
+      puts "[Mailer] SMTP_USERNAME not configured — skipping email to #{to}"
       return false
     end
 
-    from = ENV.fetch('FROM_EMAIL', 'MyBraids <onboarding@resend.dev>')
-
-    http = Net::HTTP.new(API_URI.host, API_URI.port)
-    http.use_ssl      = true
-    http.open_timeout = 10
-    http.read_timeout = 20
-
-    req         = Net::HTTP::Post.new(API_URI.path)
-    req['Authorization'] = "Bearer #{api_key}"
-    req['Content-Type']  = 'application/json'
-    req.body = { from: from, to: Array(to), subject: subject, html: html }.to_json
-
-    resp = http.request(req)
-    if resp.code.to_i.between?(200, 299)
-      true
-    else
-      raise "Resend API #{resp.code}: #{resp.body}"
+    mail = Mail.new do
+      from     from
+      to       to
+      subject  subject
+      html_part { content_type 'text/html; charset=UTF-8'; body html }
+      text_part { body html.gsub(/<[^>]+>/, '').gsub(/\n{3,}/, "\n\n").strip }
     end
+    mail.delivery_method :smtp, settings
+    mail.deliver!
+    true
   rescue => e
     puts "[Mailer] Delivery failed (#{to}): #{e.message}"
     false
