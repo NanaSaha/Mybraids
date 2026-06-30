@@ -48,9 +48,9 @@ export class AuthService {
     }
   }
 
-  async register(email: string, password: string, name: string, role: UserRole = 'client'): Promise<void> {
+  async register(email: string, password: string, name: string, role: UserRole = 'client', phone = ''): Promise<void> {
     const res = await firstValueFrom(
-      this.api.post<AuthResponse>('/auth/register', { email, password, displayName: name, role })
+      this.api.post<AuthResponse>('/auth/register', { email, password, displayName: name, role, phone })
     );
     this.saveSession(res);
     this.router.navigate([role === 'provider' ? '/dashboard/provider' : '/']);

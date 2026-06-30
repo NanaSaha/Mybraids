@@ -63,6 +63,13 @@ export class ProviderProfileComponent implements OnInit {
     }
   }
 
+  get mapsUrl(): string {
+    const loc = this.provider()?.location;
+    if (!loc) return 'https://maps.google.com';
+    const q = loc.lat && loc.lng ? `${loc.lat},${loc.lng}` : [loc.address, loc.city, loc.country].filter(Boolean).join(', ');
+    return `https://maps.google.com/?q=${encodeURIComponent(q)}`;
+  }
+
   get gradient(): string {
     const idx = parseInt(this.provider()?.id || '0', 10) - 1;
     return this.providerService.getAvatarGradient(idx);

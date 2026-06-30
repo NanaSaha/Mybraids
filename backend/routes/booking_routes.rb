@@ -112,6 +112,9 @@ module Routes
         halt 403, { error: 'Forbidden' }.to_json unless authorized
 
         DB[:bookings].where(id: id).update(status: status, updated_at: Time.now)
+
+        BookingMailer.send_status_notification(booking_id: id, status: status, booking: booking) if %w[confirmed completed].include?(status)
+
         { success: true }.to_json
       end
 

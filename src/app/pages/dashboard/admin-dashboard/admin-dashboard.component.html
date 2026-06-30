@@ -244,6 +244,9 @@
                 <td class="date-cell">{{ formatDate(user.createdAt) }}</td>
                 <td>
                   <div class="action-group">
+                    <button class="btn-xs btn-info" (click)="openDetail(user.id)" title="View full profile">
+                      <i class="fas fa-eye"></i>
+                    </button>
                     @if (user.status !== 'active') {
                       <button class="btn-xs btn-success" (click)="setUserStatus(user, 'active')">Activate</button>
                     }
@@ -321,6 +324,9 @@
               <span class="badge" [style.background]="statusColor(p.userStatus)">{{ p.userStatus }}</span>
               <span class="prov-price">${{ p.startingPrice }} {{ p.currency }}</span>
               <span class="prov-joined">Joined {{ formatDate(p.createdAt) }}</span>
+              <button class="btn-xs btn-info" (click)="openDetail(p.userId)" title="View full profile">
+                <i class="fas fa-eye"></i> View
+              </button>
             </div>
           </div>
         }
@@ -444,3 +450,73 @@
 
   </main>
 </div>
+
+<!-- User detail modal -->
+@if (selectedDetail()) {
+  <div class="admin-modal-backdrop" (click)="closeDetail()">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <button class="admin-modal-close" (click)="closeDetail()"><i class="fas fa-times"></i></button>
+
+      @if (detailLoading()) {
+        <div class="admin-modal-loading"><div class="spinner"></div> Loading…</div>
+      } @else {
+        <div class="admin-modal-header">
+          <div class="admin-modal-avatar">{{ selectedDetail().displayName?.[0] || '?' }}</div>
+          <div>
+            <h2 class="admin-modal-name">{{ selectedDetail().displayName }}</h2>
+            <span class="badge" [style.background]="statusColor(selectedDetail().role)">{{ selectedDetail().role }}</span>
+          </div>
+        </div>
+
+        <div class="admin-modal-body">
+          <div class="detail-row">
+            <span class="detail-label"><i class="fas fa-envelope"></i> Email</span>
+            <a [href]="'mailto:' + selectedDetail().email" class="detail-value link">{{ selectedDetail().email }}</a>
+          </div>
+          @if (selectedDetail().phone) {
+            <div class="detail-row">
+              <span class="detail-label"><i class="fas fa-phone"></i> Phone</span>
+              <a [href]="'tel:' + selectedDetail().phone" class="detail-value link">{{ selectedDetail().phone }}</a>
+            </div>
+          }
+          @if (selectedDetail().location) {
+            <div class="detail-row">
+              <span class="detail-label"><i class="fas fa-location-dot"></i> Location</span>
+              <span class="detail-value">{{ selectedDetail().location }}</span>
+            </div>
+          }
+          <div class="detail-row">
+            <span class="detail-label"><i class="fas fa-calendar"></i> Joined</span>
+            <span class="detail-value">{{ formatDate(selectedDetail().createdAt) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label"><i class="fas fa-calendar-check"></i> Bookings</span>
+            <span class="detail-value">{{ selectedDetail().bookingsCount ?? 0 }}</span>
+          </div>
+          @if (selectedDetail().providerProfile) {
+            <hr class="detail-divider">
+            <p class="detail-section-title">Provider Profile</p>
+            <div class="detail-row">
+              <span class="detail-label">Category</span>
+              <span class="detail-value">{{ selectedDetail().providerProfile.category }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Location</span>
+              <span class="detail-value">{{ selectedDetail().providerProfile.city }}, {{ selectedDetail().providerProfile.country }}</span>
+            </div>
+            @if (selectedDetail().providerProfile.address) {
+              <div class="detail-row">
+                <span class="detail-label">Address</span>
+                <span class="detail-value">{{ selectedDetail().providerProfile.address }}</span>
+              </div>
+            }
+            <div class="detail-row">
+              <span class="detail-label">Rating</span>
+              <span class="detail-value">{{ selectedDetail().providerProfile.rating }} ★ ({{ selectedDetail().providerProfile.reviewCount }} reviews)</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

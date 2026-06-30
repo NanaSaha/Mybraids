@@ -14,6 +14,8 @@ module Routes
             id:              pid,
             userId:          row[:user_id],
             name:            row[:display_name] || '',
+            email:           row[:email] || '',
+            phone:           row[:phone] || '',
             bio:             row[:bio] || '',
             tagline:         row[:tagline] || '',
             category:        row[:category] || 'hair',
@@ -82,7 +84,8 @@ module Routes
                .select(
                  Sequel[:providers].*,
                  Sequel[:users][:display_name],
-                 Sequel[:users][:email]
+                 Sequel[:users][:email],
+                 Sequel[:users][:phone]
                )
 
         if params[:location]&.length&.> 0
@@ -162,7 +165,8 @@ module Routes
         require_provider!
         row = DB[:providers]
                 .join(:users, id: :user_id)
-                .select(Sequel[:providers].*, Sequel[:users][:display_name])
+                .select(Sequel[:providers].*, Sequel[:users][:display_name],
+                        Sequel[:users][:email], Sequel[:users][:phone])
                 .where(Sequel[:providers][:user_id] => @current_user['id'])
                 .first
         halt 404, { error: 'Provider profile not found' }.to_json unless row
@@ -173,7 +177,8 @@ module Routes
       app.get '/api/providers/:id' do |id|
         row = DB[:providers]
                 .join(:users, id: :user_id)
-                .select(Sequel[:providers].*, Sequel[:users][:display_name])
+                .select(Sequel[:providers].*, Sequel[:users][:display_name],
+                        Sequel[:users][:email], Sequel[:users][:phone])
                 .where(Sequel[:providers][:id] => id)
                 .first
         halt 404, { error: 'Provider not found' }.to_json unless row
@@ -227,6 +232,11 @@ module Routes
         end
         provider_fields[:updated_at] = Time.now
         DB[:providers].where(id: pid).update(provider_fields)
+
+        # Also update phone on users table
+        if body['phone']
+          DB[:users].where(id: @current_user['id']).update(phone: body['phone'].to_s, updated_at: Time.now)
+        end
 
         # Upsert specialties
         if body['specialties'].is_a?(Array)

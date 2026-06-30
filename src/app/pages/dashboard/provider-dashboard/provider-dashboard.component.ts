@@ -71,13 +71,15 @@ export class ProviderDashboardComponent implements OnInit {
   ];
 
   profileForm = {
-    bio:             '',
-    tagline:         '',
-    category:        'hair' as ServiceCategory,
-    instagram:       '',
-    city:            '',
-    state:           '',
-    country:         '',
+    bio:              '',
+    tagline:          '',
+    category:         'hair' as ServiceCategory,
+    instagram:        '',
+    city:             '',
+    state:            '',
+    country:          '',
+    address:          '',
+    phone:            '',
     years_experience: 0,
   };
 
@@ -119,6 +121,8 @@ export class ProviderDashboardComponent implements OnInit {
       this.profileForm.city             = provider.location?.city || '';
       this.profileForm.state            = provider.location?.state || '';
       this.profileForm.country          = provider.location?.country || '';
+      this.profileForm.address          = provider.location?.address || '';
+      this.profileForm.phone            = provider.phone || '';
       this.profileForm.years_experience = provider.yearsExperience || 0;
       this.galleryImages.set(provider.galleryImages?.filter((u: string) => u) || []);
       if (provider.profileImage) this.profileImage.set(provider.profileImage);

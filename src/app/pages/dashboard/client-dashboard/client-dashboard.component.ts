@@ -20,8 +20,13 @@ export class ClientDashboardComponent implements OnInit {
   private bookingService = inject(BookingService);
   private api = inject(ApiService);
 
-  activeTab = signal<'upcoming' | 'past'>('upcoming');
+  activeTab = signal<'upcoming' | 'past' | 'profile'>('upcoming');
   bookings  = signal<Booking[]>([]);
+
+  profilePhone   = '';
+  profileSaving  = signal(false);
+  profileSuccess = signal(false);
+  profileError   = signal('');
 
   reviewingBookingId = signal<string | null>(null);
   reviewRating       = 0;
@@ -41,6 +46,22 @@ export class ClientDashboardComponent implements OnInit {
   async ngOnInit() {
     const bookings = await this.bookingService.getClientBookings();
     this.bookings.set(bookings);
+    this.profilePhone = this.authService.currentUser()?.phone || '';
+  }
+
+  async saveProfile() {
+    if (!this.profilePhone.trim()) { this.profileError.set('Phone number is required.'); return; }
+    this.profileSaving.set(true);
+    this.profileError.set('');
+    try {
+      await this.authService.updateProfile({ phone: this.profilePhone.trim() });
+      this.profileSuccess.set(true);
+      setTimeout(() => this.profileSuccess.set(false), 3000);
+    } catch {
+      this.profileError.set('Could not save profile. Please try again.');
+    } finally {
+      this.profileSaving.set(false);
+    }
   }
 
   async cancelBooking(id: string) {

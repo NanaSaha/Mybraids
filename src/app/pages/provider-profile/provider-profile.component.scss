@@ -815,6 +815,27 @@
   i { font-size: 1rem; }
 }
 
+/* Location card */
+.location-address {
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.location-city {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.maps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  i { color: #4285F4; }
+}
+
 /* Availability */
 .availability-grid {
   display: flex;

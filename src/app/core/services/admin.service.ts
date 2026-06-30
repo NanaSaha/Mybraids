@@ -16,6 +16,7 @@ export interface AdminUser {
 
 export interface AdminProvider {
   id: string; userId: string; name: string; email: string; photoURL: string | null;
+  phone?: string; address?: string;
   category: string; rating: number; reviewCount: number;
   verified: boolean; featured: boolean; approved: boolean;
   userStatus: string; city?: string; country?: string;
@@ -61,6 +62,10 @@ export class AdminService {
 
   deleteUser(id: string): Promise<void> {
     return firstValueFrom(this.api.delete<void>(`/admin/users/${id}`));
+  }
+
+  getUserDetail(id: string): Promise<any> {
+    return firstValueFrom(this.api.get<any>(`/admin/users/${id}`));
   }
 
   getProviders(params: Record<string, string> = {}): Promise<PagedResult<AdminProvider>> {

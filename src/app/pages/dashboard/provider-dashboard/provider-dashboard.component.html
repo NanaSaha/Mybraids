@@ -422,6 +422,15 @@
               </div>
             </div>
             <div class="form-group">
+              <label>Phone Number <span class="label-required">Required</span></label>
+              <input type="tel" class="form-control" [(ngModel)]="profileForm.phone" placeholder="+1 555 000 0000">
+            </div>
+            <div class="form-group">
+              <label>Full Address <span class="label-required">Shown to clients after booking</span></label>
+              <input type="text" class="form-control" [(ngModel)]="profileForm.address"
+                     placeholder="e.g. 12 Market Street, Accra, Ghana">
+            </div>
+            <div class="form-group">
               <label>Instagram Handle</label>
               <input type="text" class="form-control" [(ngModel)]="profileForm.instagram" placeholder="@youraccount">
             </div>

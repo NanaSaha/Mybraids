@@ -299,3 +299,58 @@
   align-items: center;
   gap: 5px;
 }
+
+/* Profile settings tab */
+.profile-settings-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  max-width: 480px;
+  margin-top: 8px;
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    i { color: var(--primary); }
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+  }
+}
+
+.field-required { color: var(--primary); }
+
+.profile-save-success {
+  color: var(--sage);
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.profile-save-error {
+  color: #c62828;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+

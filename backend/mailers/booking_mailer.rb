@@ -57,6 +57,57 @@ module BookingMailer
     end
   end
 
+  # Call this when a booking status changes to confirmed or completed.
+  def self.send_status_notification(booking_id:, status:, booking:)
+    Thread.new do
+      begin
+        configure
+        client        = DB[:users].where(id: booking[:client_id]).first
+        prow          = DB[:providers].where(id: booking[:provider_id]).first
+        provider_user = DB[:users].where(id: prow&.dig(:user_id)).first if prow
+
+        client_name    = client&.dig(:display_name)           || 'Client'
+        client_email   = client&.dig(:email)                  || ''
+        provider_name  = provider_user&.dig(:display_name)    || 'Artist'
+        provider_email = provider_user&.dig(:email)           || ''
+
+        service_name = DB[:services].where(id: booking[:service_id]).get(:name) || 'Service'
+        date_str     = booking[:booking_date].to_s
+        time_str     = booking[:booking_time].to_s
+        label        = status == 'confirmed' ? 'Confirmed' : 'Completed'
+
+        subject_line = "[MyBraids] Booking #{label}: #{client_name} — #{service_name} on #{date_str}"
+        html = status_email_html(label, client_name, client_email, provider_name, provider_email, service_name, date_str, time_str)
+
+        deliver(to: ADMIN_EMAIL, subject: subject_line, html: html) if ADMIN_EMAIL.present?
+
+        if status == 'confirmed'
+          client_html = <<~HTML
+            <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f5f0eb;padding:40px 0">
+            <table width="560" style="margin:0 auto;background:#fff;border-radius:12px;overflow:hidden">
+              <tr><td style="background:#4A7C59;padding:28px 40px;text-align:center">
+                <p style="margin:0;font-size:22px;font-weight:800;color:#fff">✅ Booking Confirmed</p>
+              </td></tr>
+              <tr><td style="padding:32px 40px">
+                <p>Hi #{client_name.split(' ').first},</p>
+                <p>Your appointment with <strong>#{provider_name}</strong> has been <strong>confirmed</strong>.</p>
+                #{detail_row('Service', service_name)}
+                #{detail_row('Date',    format_date(date_str))}
+                #{detail_row('Time',    time_str)}
+                <p style="margin-top:24px">See you then! 🎉</p>
+              </td></tr>
+            </table></body></html>
+          HTML
+          deliver(to: client_email, subject: "Your booking with #{provider_name} is confirmed!", html: client_html) if client_email.present?
+        end
+
+        puts "[BookingMailer] Status notification sent (#{status}) for booking #{booking_id}"
+      rescue => e
+        puts "[BookingMailer] Status notification error: #{e.message}"
+      end
+    end
+  end
+
   private
 
   def self.deliver(to:, subject:, html:)
@@ -267,6 +318,37 @@ module BookingMailer
         </table>
       </body>
       </html>
+    HTML
+  end
+
+  def self.status_email_html(label, client_name, client_email, provider_name, provider_email, service_name, date_str, time_str)
+    color = label == 'Confirmed' ? '#4A7C59' : '#C85A2E'
+    <<~HTML
+      <!DOCTYPE html>
+      <html><head><meta charset="UTF-8"></head>
+      <body style="margin:0;padding:0;background:#f5f0eb;font-family:Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:40px 0;">
+          <tr><td align="center">
+            <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden">
+              <tr><td style="background:#{color};padding:28px 40px;text-align:center">
+                <p style="margin:0;font-size:20px;font-weight:800;color:#fff">✂️ MyBraids — Booking #{label}</p>
+              </td></tr>
+              <tr><td style="padding:36px 40px">
+                <h2 style="margin:0 0 20px;font-size:18px;color:#1C0A00">Booking Status Update</h2>
+                <table cellpadding="0" cellspacing="0" width="100%">
+                  #{detail_row('Status',   label)}
+                  #{detail_row('Client',   "#{client_name} &lt;#{client_email}&gt;")}
+                  #{detail_row('Provider', "#{provider_name} &lt;#{provider_email}&gt;")}
+                  #{detail_row('Service',  service_name)}
+                  #{detail_row('Date',     format_date(date_str))}
+                  #{detail_row('Time',     time_str)}
+                </table>
+                <p style="margin:28px 0 0;font-size:12px;color:#9e8878;text-align:center">© #{Time.now.year} MyBraids</p>
+              </td></tr>
+            </table>
+          </td></tr>
+        </table>
+      </body></html>
     HTML
   end
 

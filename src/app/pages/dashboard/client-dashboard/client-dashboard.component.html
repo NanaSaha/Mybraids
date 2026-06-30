@@ -49,6 +49,9 @@
         <button class="tab" [class.active]="activeTab() === 'past'" (click)="activeTab.set('past')">
           Past ({{ pastBookings.length }})
         </button>
+        <button class="tab" [class.active]="activeTab() === 'profile'" (click)="activeTab.set('profile')">
+          <i class="fas fa-user"></i> My Profile
+        </button>
       </div>
 
       @if (activeTab() === 'upcoming') {
@@ -168,6 +171,34 @@
         }
       }
     </div>
+
+      @if (activeTab() === 'profile') {
+        <div class="profile-settings-card">
+          <h3><i class="fas fa-user-circle"></i> My Profile</h3>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" class="form-control" [value]="authService.currentUser()?.displayName" readonly>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-control" [value]="authService.currentUser()?.email" readonly>
+          </div>
+          <div class="form-group">
+            <label>Phone Number <span class="field-required">*</span></label>
+            <input type="tel" class="form-control" placeholder="+1 555 000 0000" [(ngModel)]="profilePhone" name="profilePhone">
+          </div>
+          @if (profileSuccess()) {
+            <p class="profile-save-success"><i class="fas fa-check-circle"></i> Profile saved successfully!</p>
+          }
+          @if (profileError()) {
+            <p class="profile-save-error"><i class="fas fa-exclamation-circle"></i> {{ profileError() }}</p>
+          }
+          <button class="btn btn-primary" (click)="saveProfile()" [disabled]="profileSaving()">
+            @if (profileSaving()) { <span class="spinner spinner-sm"></span> Saving... }
+            @else { <i class="fas fa-save"></i> Save Profile }
+          </button>
+        </div>
+      }
 
   </div>
 </div>

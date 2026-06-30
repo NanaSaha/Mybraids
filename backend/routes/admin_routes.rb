@@ -124,6 +124,25 @@ module Routes
         { success: true }.to_json
       end
 
+      app.get '/api/admin/users/:id' do |id|
+        require_admin!
+        u = DB[:users].where(id: id).first
+        halt 404, { error: 'User not found' }.to_json unless u
+        provider = DB[:providers].where(user_id: id).first
+        bookings_count = DB[:bookings].where(client_id: id).count
+        {
+          id: u[:id], email: u[:email], displayName: u[:display_name],
+          photoURL: u[:photo_url], role: u[:role], status: u[:status] || 'active',
+          phone: u[:phone], location: u[:location], createdAt: u[:created_at],
+          providerProfile: provider ? {
+            id: provider[:id], city: provider[:city], country: provider[:country],
+            address: provider[:address], category: provider[:category],
+            rating: provider[:rating].to_f, reviewCount: provider[:review_count].to_i
+          } : nil,
+          bookingsCount: bookings_count
+        }.to_json
+      end
+
       app.delete '/api/admin/users/:id' do |id|
         require_admin!
         halt 400, { error: 'Cannot delete an admin account' }.to_json if
@@ -143,6 +162,7 @@ module Routes
             Sequel[:users][:display_name],
             Sequel[:users][:email],
             Sequel[:users][:photo_url],
+            Sequel[:users][:phone],
             Sequel[:users][:status].as(:user_status),
             Sequel[:users][:created_at].as(:user_created_at)
           )
@@ -155,13 +175,15 @@ module Routes
         result[:data] = result[:data].map { |p|
           { id: p[:id], userId: p[:user_id],
             name: p[:display_name], email: p[:email],
-            photoURL: p[:photo_url], category: p[:category],
+            phone: p[:phone],
+            photoURL: p[:profile_image] || p[:photo_url],
+            category: p[:category],
+            address: p[:address], city: p[:city], country: p[:country],
             rating: p[:rating].to_f, reviewCount: p[:review_count].to_i,
             verified: [true,1].include?(p[:verified]),
             featured: [true,1].include?(p[:featured]),
             approved: [true,1].include?(p[:approved]),
             userStatus: p[:user_status] || 'active',
-            city: p[:city], country: p[:country],
             startingPrice: p[:starting_price].to_f, currency: p[:currency],
             createdAt: p[:user_created_at] }
         }

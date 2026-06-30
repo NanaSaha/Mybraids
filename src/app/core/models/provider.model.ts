@@ -38,6 +38,8 @@ export interface Provider {
   id: string;
   userId: string;
   name: string;
+  email?: string;
+  phone?: string;
   bio: string;
   tagline: string;
   category: ServiceCategory;

@@ -20,6 +20,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   name = '';
   email = '';
+  phone = '';
   password = '';
   role = signal<UserRole>('client');
   agreeToTerms = false;
@@ -46,8 +47,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   async onRegister() {
-    if (!this.name || !this.email || !this.password) {
-      this.error.set('Please fill in all required fields.');
+    if (!this.name || !this.email || !this.phone || !this.password) {
+      this.error.set('Please fill in all required fields including phone number.');
       return;
     }
     if (this.password.length < 6) {
@@ -61,7 +62,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.isLoading.set(true);
     this.error.set('');
     try {
-      await this.authService.register(this.email, this.password, this.name, this.role());
+      await this.authService.register(this.email, this.password, this.name, this.role(), this.phone);
     } catch (e: any) {
       this.error.set(e?.error?.error || e?.message || 'Registration failed. Please try again.');
     } finally {

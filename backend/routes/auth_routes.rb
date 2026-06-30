@@ -13,10 +13,12 @@ module Routes
         email    = body['email'].to_s.strip.downcase
         password = body['password'].to_s
         name     = body['displayName'].to_s.strip
+        phone    = body['phone'].to_s.strip
         role     = %w[client provider].include?(body['role']) ? body['role'] : 'client'
 
         return halt 422, { error: 'Email and password required' }.to_json if email.empty? || password.length < 8
-        return halt 409, { error: 'Email already registered' }.to_json   if DB[:users].where(email: email).first
+        return halt 422, { error: 'Phone number is required' }.to_json    if phone.empty?
+        return halt 409, { error: 'Email already registered' }.to_json    if DB[:users].where(email: email).first
 
         hash = BCrypt::Password.create(password)
         id   = SecureRandom.uuid
@@ -26,6 +28,7 @@ module Routes
           email:         email,
           password_hash: hash,
           display_name:  name,
+          phone:         phone,
           role:          role,
           created_at:    Time.now,
           updated_at:    Time.now

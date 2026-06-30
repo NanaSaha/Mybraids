@@ -53,6 +53,10 @@ export class AdminDashboardComponent implements OnInit {
   // Feedback
   actionMsg = signal('');
 
+  // User detail modal
+  selectedDetail = signal<any | null>(null);
+  detailLoading  = signal(false);
+
   // Create user form
   showCreateUser = signal(false);
   createForm = signal({ email: '', displayName: '', password: '', role: 'admin' });
@@ -203,6 +207,20 @@ export class AdminDashboardComponent implements OnInit {
     this.reviews.set(this.reviews().filter(r => r.id !== review.id));
     this.flash('Review removed');
   }
+
+  // ── User detail modal ─────────────────────────────────────────────────────
+  async openDetail(userId: string) {
+    this.detailLoading.set(true);
+    this.selectedDetail.set({});
+    try {
+      const detail = await this.adminService.getUserDetail(userId);
+      this.selectedDetail.set(detail);
+    } finally {
+      this.detailLoading.set(false);
+    }
+  }
+
+  closeDetail() { this.selectedDetail.set(null); }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   flash(msg: string) {
