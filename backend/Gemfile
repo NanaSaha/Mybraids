@@ -20,5 +20,4 @@ gem 'cloudinary', '~> 1.28'
 gem 'dotenv',    '~> 2.8'
 gem 'rack-cors', '~> 2.0'
 
-# Email
-gem 'mail', '~> 2.8'
+# Email delivery via Brevo HTTP API (stdlib net/http — no extra gem needed)
