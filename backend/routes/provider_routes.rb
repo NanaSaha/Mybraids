@@ -10,12 +10,17 @@ module Routes
           return nil unless row
 
           pid = row[:id]
+          uid = row[:user_id]
+
+          # Direct users lookup avoids Sequel JOIN wildcard aliasing issues
+          user = DB[:users].where(id: uid).select(:display_name, :email, :phone).first || {}
+
           {
             id:              pid,
-            userId:          row[:user_id],
-            name:            row[:display_name] || '',
-            email:           row[:email] || '',
-            phone:           row[:phone] || '',
+            userId:          uid,
+            name:            user[:display_name] || row[:display_name] || '',
+            email:           user[:email]        || row[:email]        || '',
+            phone:           user[:phone]        || row[:phone]        || '',
             bio:             row[:bio] || '',
             tagline:         row[:tagline] || '',
             category:        row[:category] || 'hair',

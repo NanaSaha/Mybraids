@@ -459,6 +459,11 @@
 
       @if (detailLoading()) {
         <div class="admin-modal-loading"><div class="spinner"></div> Loading…</div>
+      } @else if (detailError()) {
+        <div class="admin-modal-loading" style="color:#c0392b;gap:12px;">
+          <i class="fas fa-circle-exclamation" style="font-size:1.5rem"></i>
+          <span>{{ detailError() }}</span>
+        </div>
       } @else {
         <div class="admin-modal-header">
           <div class="admin-modal-avatar">{{ selectedDetail().displayName?.[0] || '?' }}</div>

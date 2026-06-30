@@ -56,6 +56,7 @@ export class AdminDashboardComponent implements OnInit {
   // User detail modal
   selectedDetail = signal<any | null>(null);
   detailLoading  = signal(false);
+  detailError    = signal('');
 
   // Create user form
   showCreateUser = signal(false);
@@ -210,17 +211,25 @@ export class AdminDashboardComponent implements OnInit {
 
   // ── User detail modal ─────────────────────────────────────────────────────
   async openDetail(userId: string) {
+    this.selectedDetail.set(null);   // null = modal closed
+    this.detailError.set('');
     this.detailLoading.set(true);
-    this.selectedDetail.set({});
+    this.selectedDetail.set('loading');  // truthy sentinel → modal opens & shows spinner
     try {
       const detail = await this.adminService.getUserDetail(userId);
       this.selectedDetail.set(detail);
+    } catch (e: any) {
+      this.detailError.set(e?.error?.error || 'Could not load user details. Please try again.');
+      this.selectedDetail.set('error');  // truthy → modal stays open, shows error
     } finally {
       this.detailLoading.set(false);
     }
   }
 
-  closeDetail() { this.selectedDetail.set(null); }
+  closeDetail() {
+    this.selectedDetail.set(null);
+    this.detailError.set('');
+  }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   flash(msg: string) {
