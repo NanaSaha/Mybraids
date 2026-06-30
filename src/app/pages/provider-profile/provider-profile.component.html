@@ -187,6 +187,78 @@
           <!-- Reviews Tab -->
           @if (activeTab() === 'reviews') {
             <div class="reviews-section">
+
+              <!-- Write a review (clients only) -->
+              @if (canReview) {
+                <div class="review-form-card">
+                  <h3 class="review-form-title"><i class="fas fa-pen-to-square"></i> Write a Review</h3>
+
+                  @if (reviewSuccess()) {
+                    <div class="review-form-success">
+                      <i class="fas fa-circle-check"></i> Your review has been posted — thank you!
+                    </div>
+                  }
+
+                  <!-- Star picker -->
+                  <div class="star-picker">
+                    <span class="star-picker-label">Your rating</span>
+                    <div class="star-picker-stars">
+                      @for (s of stars; track s) {
+                        <button class="star-btn"
+                          [class.active]="s < (reviewHover() || reviewRating())"
+                          (mouseenter)="reviewHover.set(s + 1)"
+                          (mouseleave)="reviewHover.set(0)"
+                          (click)="reviewRating.set(s + 1)"
+                          type="button">
+                          <i class="fas fa-star"></i>
+                        </button>
+                      }
+                    </div>
+                    @if (reviewRating() > 0) {
+                      <span class="star-picker-label">
+                        {{ ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][reviewRating()] }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Service field -->
+                  <div class="review-field">
+                    <label>Service received <span class="optional">(optional)</span></label>
+                    <input type="text" [ngModel]="reviewService()" (ngModelChange)="reviewService.set($event)"
+                           placeholder="e.g. Box Braids, Knotless Braids…" class="review-input">
+                  </div>
+
+                  <!-- Comment -->
+                  <div class="review-field">
+                    <label>Your review <span class="required">*</span></label>
+                    <textarea [ngModel]="reviewComment()" (ngModelChange)="reviewComment.set($event)"
+                              placeholder="Share your experience with this artist…"
+                              rows="4" class="review-input review-textarea"></textarea>
+                  </div>
+
+                  @if (reviewError()) {
+                    <p class="review-form-error"><i class="fas fa-circle-exclamation"></i> {{ reviewError() }}</p>
+                  }
+
+                  <button class="btn btn-primary review-submit-btn"
+                          (click)="submitReview()"
+                          [disabled]="reviewSaving()">
+                    @if (reviewSaving()) {
+                      <span class="spinner spinner-sm"></span> Submitting…
+                    } @else {
+                      <i class="fas fa-paper-plane"></i> Post Review
+                    }
+                  </button>
+                </div>
+              } @else if (!authService.isAuthenticated) {
+                <div class="review-login-prompt">
+                  <i class="fas fa-star"></i>
+                  <p>Want to leave a review?</p>
+                  <a routerLink="/auth/login" class="btn btn-outline btn-sm">Sign in to review</a>
+                </div>
+              }
+
+              <!-- Reviews list -->
               @if (reviews().length === 0) {
                 <div class="no-reviews">
                   <i class="fas fa-star"></i>
