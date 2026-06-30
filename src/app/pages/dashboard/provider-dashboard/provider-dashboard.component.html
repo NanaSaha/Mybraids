@@ -109,7 +109,7 @@
                 <p>{{ booking.date }}</p>
                 <p class="mb-time">{{ booking.time }}</p>
               </div>
-              <span class="status-badge" [class]="getStatusClass(booking.status)">{{ booking.status }}</span>
+              <span class="status-badge" [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
               <span class="mb-price">{{ booking.currency }} {{ booking.servicePrice }}</span>
             </div>
           }
@@ -169,7 +169,7 @@
               <div class="bd-item"><i class="fas fa-clock"></i> {{ booking.time }}</div>
             </div>
             <div class="booking-price">{{ booking.currency }} {{ booking.servicePrice }}</div>
-            <span class="status-badge" [class]="getStatusClass(booking.status)">{{ booking.status }}</span>
+            <span class="status-badge" [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
             <div class="booking-actions">
               @if (booking.status === 'pending') {
                 <button class="btn btn-primary btn-sm" (click)="updateBookingStatus(booking.id, 'confirmed')">Confirm</button>

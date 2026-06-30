@@ -256,6 +256,16 @@ export class ProviderDashboardComponent implements OnInit {
     return map[status] || '';
   }
 
+  getStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      pending:   'Pending',
+      confirmed: 'Confirmed',
+      cancelled: 'Cancelled',
+      completed: 'Completed',
+    };
+    return map[status] || status;
+  }
+
   getAvailabilitySlot(day: string) {
     return this.availability[day];
   }

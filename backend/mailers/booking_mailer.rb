@@ -39,6 +39,58 @@ module BookingMailer
     end
   end
 
+  # Call this when a booking is cancelled (by client or provider).
+  def self.send_cancellation_notifications(booking_id:, booking:, cancelled_by: 'client')
+    Thread.new do
+      begin
+        client        = DB[:users].where(id: booking[:client_id]).first
+        prow          = DB[:providers].where(id: booking[:provider_id]).first
+        provider_user = DB[:users].where(id: prow&.dig(:user_id)).first if prow
+
+        client_name    = client&.dig(:display_name)        || 'Client'
+        client_email   = client&.dig(:email)               || ''
+        provider_name  = provider_user&.dig(:display_name) || 'Artist'
+        provider_email = provider_user&.dig(:email)        || ''
+
+        service_name = DB[:services].where(id: booking[:service_id]).get(:name) || 'Service'
+        date_str     = booking[:booking_date].to_s
+        time_str     = booking[:booking_time].respond_to?(:strftime) ? booking[:booking_time].strftime('%H:%M') : booking[:booking_time].to_s
+        who          = cancelled_by == 'provider' ? provider_name : client_name
+
+        # 1. Client
+        unless client_email.empty?
+          Mailer.deliver(
+            to:      client_email,
+            subject: "Booking cancelled — #{service_name} on #{date_str}",
+            html:    cancellation_email_html('client', client_name, provider_name, service_name, date_str, time_str, who)
+          )
+        end
+
+        # 2. Provider
+        unless provider_email.empty?
+          Mailer.deliver(
+            to:      provider_email,
+            subject: "Booking cancelled — #{client_name} on #{date_str}",
+            html:    cancellation_email_html('provider', client_name, provider_name, service_name, date_str, time_str, who)
+          )
+        end
+
+        # 3. Admin
+        unless ADMIN_EMAIL.empty?
+          Mailer.deliver(
+            to:      ADMIN_EMAIL,
+            subject: "[MyBraids] Booking cancelled: #{client_name} → #{service_name} with #{provider_name}",
+            html:    cancellation_email_html('admin', client_name, provider_name, service_name, date_str, time_str, who)
+          )
+        end
+
+        puts "[BookingMailer] Cancellation notifications sent for booking #{booking_id}"
+      rescue => e
+        puts "[BookingMailer] Cancellation error: #{e.message}"
+      end
+    end
+  end
+
   # Call this when a booking status changes to confirmed or completed.
   def self.send_status_notification(booking_id:, status:, booking:)
     Thread.new do
@@ -319,6 +371,62 @@ module BookingMailer
           </td></tr>
         </table>
       </body></html>
+    HTML
+  end
+
+  def self.cancellation_email_html(recipient, client_name, provider_name, service_name, date_str, time_str, cancelled_by_name)
+    case recipient
+    when 'client'
+      greeting = "Hi #{client_name.split(' ').first},"
+      body_line = "Your appointment with <strong>#{provider_name}</strong> has been cancelled."
+    when 'provider'
+      greeting = "Hi #{provider_name.split(' ').first},"
+      body_line = "The booking from <strong>#{client_name}</strong> has been cancelled."
+    else
+      greeting  = 'Admin notification'
+      body_line = "A booking was cancelled by <strong>#{cancelled_by_name}</strong>."
+    end
+
+    <<~HTML
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+      <body style="margin:0;padding:0;background:#f5f0eb;font-family:'DM Sans',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:40px 0;">
+          <tr><td align="center">
+            <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+              <tr>
+                <td style="background:#c0392b;border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
+                  <p style="margin:0;font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px;">✂️ MyBraids</p>
+                  <p style="margin:8px 0 0;font-size:15px;color:rgba(255,255,255,0.8);">Booking Cancelled</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="background:#ffffff;padding:40px;border-radius:0 0 16px 16px;">
+                  <p style="font-size:15px;color:#1C0A00;">#{greeting}</p>
+                  <p style="font-size:15px;color:#4a3728;line-height:1.6;margin-bottom:28px;">#{body_line}</p>
+                  <table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 28px;">
+                    <tr>
+                      <td style="background:#fff5f5;border-radius:12px;border:1.5px solid #f5c6c6;padding:24px;">
+                        <table cellpadding="0" cellspacing="0" width="100%">
+                          #{detail_row('Client',   client_name)}
+                          #{detail_row('Artist',   provider_name)}
+                          #{detail_row('Service',  service_name)}
+                          #{detail_row('Date',     format_date(date_str))}
+                          #{detail_row('Time',     time_str)}
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="font-size:13px;color:#9e8878;">If you have any questions, please contact us through the MyBraids platform.</p>
+                  <p style="margin:32px 0 0;font-size:12px;color:#9e8878;text-align:center;">© #{Time.now.year} MyBraids</p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+      </body>
+      </html>
     HTML
   end
 

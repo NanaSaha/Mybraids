@@ -101,9 +101,11 @@ module Routes
         booking = DB[:bookings].where(id: id).first
         halt 404, { error: 'Booking not found' }.to_json unless booking
 
-        # Only the client can cancel their own booking; provider can confirm/complete
+        # Prevent any action on an already-cancelled booking
+        halt 422, { error: 'This booking has already been cancelled.' }.to_json if booking[:status] == 'cancelled'
+
+        # Only the client can cancel their own booking; provider can confirm/complete/decline
         uid = @current_user['id']
-        role = @current_user['role']
         pid  = DB[:providers].where(user_id: uid).get(:id)
 
         authorized = (booking[:client_id] == uid && status == 'cancelled') ||
@@ -113,7 +115,12 @@ module Routes
 
         DB[:bookings].where(id: id).update(status: status, updated_at: Time.now)
 
-        BookingMailer.send_status_notification(booking_id: id, status: status, booking: booking) if %w[confirmed completed].include?(status)
+        if %w[confirmed completed].include?(status)
+          BookingMailer.send_status_notification(booking_id: id, status: status, booking: booking)
+        elsif status == 'cancelled'
+          cancelled_by = pid == booking[:provider_id] ? 'provider' : 'client'
+          BookingMailer.send_cancellation_notifications(booking_id: id, booking: booking, cancelled_by: cancelled_by)
+        end
 
         { success: true }.to_json
       end
@@ -123,7 +130,9 @@ module Routes
         authenticate!
         booking = DB[:bookings].where(id: id, client_id: @current_user['id']).first
         halt 404, { error: 'Booking not found' }.to_json unless booking
+        halt 422, { error: 'This booking has already been cancelled.' }.to_json if booking[:status] == 'cancelled'
         DB[:bookings].where(id: id).update(status: 'cancelled', updated_at: Time.now)
+        BookingMailer.send_cancellation_notifications(booking_id: id, booking: booking, cancelled_by: 'client')
         { success: true }.to_json
       end
 
@@ -142,7 +151,7 @@ module Routes
             servicePrice:  r[:service_price].to_f,
             currency:      r[:currency],
             date:          r[:booking_date].to_s,
-            time:          r[:booking_time].to_s,
+            time:          r[:booking_time].respond_to?(:strftime) ? r[:booking_time].strftime('%H:%M') : r[:booking_time].to_s,
             duration:      r[:duration].to_i,
             status:        r[:status],
             notes:         r[:notes] || '',
