@@ -38,7 +38,7 @@ class MyBraidsApp < Sinatra::Base
 
   # ── Health check ───────────────────────────────────────────────────────
   get '/health' do
-    { status: 'ok', time: Time.now }.to_json
+    { status: 'ok', time: Time.now, version: '2026-06-30-v2' }.to_json
   end
 
   # ── 404 handler ────────────────────────────────────────────────────────
