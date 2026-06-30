@@ -234,8 +234,9 @@ module Routes
         DB[:providers].where(id: pid).update(provider_fields)
 
         # Also update phone on users table
-        if body['phone']
-          DB[:users].where(id: @current_user['id']).update(phone: body['phone'].to_s, updated_at: Time.now)
+        phone_val = body['phone'].to_s.strip
+        if phone_val.length > 0
+          DB[:users].where(id: @current_user['id']).update(phone: phone_val, updated_at: Time.now)
         end
 
         # Upsert specialties

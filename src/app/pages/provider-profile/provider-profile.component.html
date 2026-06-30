@@ -302,8 +302,13 @@
                 <span class="specialty-pill">{{ spec }}</span>
               }
             </div>
+            @if (provider()!.phone) {
+              <a [href]="'tel:' + provider()!.phone" class="social-link">
+                <i class="fas fa-phone"></i> {{ provider()!.phone }}
+              </a>
+            }
             @if (provider()!.email) {
-              <a href="mailto:{{ provider()!.email }}" class="social-link">
+              <a [href]="'mailto:' + provider()!.email" class="social-link">
                 <i class="fas fa-envelope"></i> {{ provider()!.email }}
               </a>
             }
