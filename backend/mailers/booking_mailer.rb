@@ -1,31 +1,13 @@
-require 'mail'
+require_relative 'mailer'
 
 module BookingMailer
-  FROM      = ENV.fetch('FROM_EMAIL',    'noreply@mybraids.com')
-  APP_URL   = ENV.fetch('FRONTEND_URL',  'http://localhost:4200')
-  ADMIN_EMAIL = ENV.fetch('ADMIN_EMAIL', ENV.fetch('SMTP_USERNAME', ''))
-
-  def self.configure
-    Mail.defaults do
-      delivery_method :smtp, {
-        address:              ENV.fetch('SMTP_HOST',     'smtp.gmail.com'),
-        port:                 ENV.fetch('SMTP_PORT',     '587').to_i,
-        user_name:            ENV.fetch('SMTP_USERNAME', ''),
-        password:             ENV.fetch('SMTP_PASSWORD', ''),
-        authentication:       :plain,
-        enable_starttls_auto: true,
-        open_timeout:         10,
-        read_timeout:         10,
-      }
-    end
-  end
+  APP_URL     = ENV.fetch('FRONTEND_URL', 'http://localhost:4200')
+  ADMIN_EMAIL = ENV.fetch('ADMIN_EMAIL', '')
 
   # Call this right after a booking is inserted. Runs in a background thread.
   def self.send_booking_notifications(booking_id:, client_id:, provider_id:, service:, date:, time:, notes:)
     Thread.new do
       begin
-        configure
-
         # Fetch names + emails from DB
         client   = DB[:users].where(id: client_id).first
         prow     = DB[:providers].where(id: provider_id).first
@@ -39,16 +21,16 @@ module BookingMailer
         booking_url = "#{APP_URL}/dashboard"
 
         # 1. Client confirmation
-        deliver(to: client_email,   subject: "Booking confirmed — #{service[:name]} on #{date}",
-                html: client_email_html(client_name, provider_name, service, date, time, notes, booking_url)) if client_email.present?
+        Mailer.deliver(to: client_email, subject: "Booking confirmed — #{service[:name]} on #{date}",
+                       html: client_email_html(client_name, provider_name, service, date, time, notes, booking_url)) unless client_email.empty?
 
         # 2. Provider notification
-        deliver(to: provider_email, subject: "New booking from #{client_name} — #{service[:name]} on #{date}",
-                html: provider_email_html(provider_name, client_name, client_email, service, date, time, notes, booking_url)) if provider_email.present?
+        Mailer.deliver(to: provider_email, subject: "New booking from #{client_name} — #{service[:name]} on #{date}",
+                       html: provider_email_html(provider_name, client_name, client_email, service, date, time, notes, booking_url)) unless provider_email.empty?
 
         # 3. Admin notification
-        deliver(to: ADMIN_EMAIL, subject: "[MyBraids] New booking: #{client_name} → #{service[:name]} with #{provider_name}",
-                html: admin_email_html(client_name, client_email, provider_name, provider_email, service, date, time, notes)) if ADMIN_EMAIL.present?
+        Mailer.deliver(to: ADMIN_EMAIL, subject: "[MyBraids] New booking: #{client_name} → #{service[:name]} with #{provider_name}",
+                       html: admin_email_html(client_name, client_email, provider_name, provider_email, service, date, time, notes)) unless ADMIN_EMAIL.empty?
 
         puts "[BookingMailer] Notifications sent for booking #{booking_id}"
       rescue => e
@@ -61,7 +43,6 @@ module BookingMailer
   def self.send_status_notification(booking_id:, status:, booking:)
     Thread.new do
       begin
-        configure
         client        = DB[:users].where(id: booking[:client_id]).first
         prow          = DB[:providers].where(id: booking[:provider_id]).first
         provider_user = DB[:users].where(id: prow&.dig(:user_id)).first if prow
@@ -79,7 +60,7 @@ module BookingMailer
         subject_line = "[MyBraids] Booking #{label}: #{client_name} — #{service_name} on #{date_str}"
         html = status_email_html(label, client_name, client_email, provider_name, provider_email, service_name, date_str, time_str)
 
-        deliver(to: ADMIN_EMAIL, subject: subject_line, html: html) if ADMIN_EMAIL.present?
+        Mailer.deliver(to: ADMIN_EMAIL, subject: subject_line, html: html) unless ADMIN_EMAIL.empty?
 
         if status == 'confirmed'
           client_html = <<~HTML
@@ -98,7 +79,7 @@ module BookingMailer
               </td></tr>
             </table></body></html>
           HTML
-          deliver(to: client_email, subject: "Your booking with #{provider_name} is confirmed!", html: client_html) if client_email.present?
+          Mailer.deliver(to: client_email, subject: "Your booking with #{provider_name} is confirmed!", html: client_html) unless client_email.empty?
         end
 
         puts "[BookingMailer] Status notification sent (#{status}) for booking #{booking_id}"
@@ -109,17 +90,6 @@ module BookingMailer
   end
 
   private
-
-  def self.deliver(to:, subject:, html:)
-    from_addr = FROM
-    Mail.new do
-      from    from_addr
-      to      to
-      subject subject
-      html_part { content_type 'text/html; charset=UTF-8'; body html }
-      text_part { body html.gsub(/<[^>]+>/, '').gsub(/\n{3,}/, "\n\n").strip }
-    end.deliver!
-  end
 
   # ── Email templates ────────────────────────────────────────────────────────
 
@@ -369,8 +339,4 @@ module BookingMailer
   def self.format_date(date_str)
     Date.parse(date_str.to_s).strftime('%A, %d %B %Y') rescue date_str.to_s
   end
-end
-
-class String
-  def present?; !strip.empty?; end unless method_defined?(:present?)
 end
