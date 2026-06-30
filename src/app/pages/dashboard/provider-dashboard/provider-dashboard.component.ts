@@ -219,10 +219,15 @@ export class ProviderDashboardComponent implements OnInit {
     this.isSaving.set(true);
     this.saveSuccess.set(false);
     try {
+      // Save provider profile fields
       await firstValueFrom(this.api.put('/providers/me', {
         ...this.profileForm,
         availability: this.availability,
       }));
+      // Save phone separately via auth endpoint (phone lives on users table)
+      if (this.profileForm.phone.trim()) {
+        await firstValueFrom(this.api.put('/auth/profile', { phone: this.profileForm.phone.trim() }));
+      }
       this.saveSuccess.set(true);
       setTimeout(() => this.saveSuccess.set(false), 3000);
     } catch {

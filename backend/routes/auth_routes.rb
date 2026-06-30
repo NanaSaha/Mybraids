@@ -156,9 +156,9 @@ module Routes
         body = JSON.parse(request.body.read) rescue {}
 
         updates = {}
-        updates[:display_name] = body['displayName'].to_s.strip if body['displayName']
-        updates[:phone]        = body['phone'].to_s             if body['phone']
-        updates[:location]     = body['location'].to_s          if body['location']
+        updates[:display_name] = body['displayName'].to_s.strip if body['displayName'].to_s.strip.length > 0
+        updates[:phone]        = body['phone'].to_s.strip       if body['phone'].to_s.strip.length > 0
+        updates[:location]     = body['location'].to_s          if body['location'].to_s.strip.length > 0
         updates[:updated_at]   = Time.now
 
         DB[:users].where(id: @current_user['id']).update(updates)
