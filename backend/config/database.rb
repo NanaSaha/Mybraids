@@ -16,13 +16,16 @@ DB = Sequel.connect(
 
 DB.loggers << Logger.new($stdout) if ENV['RACK_ENV'] == 'development'
 
-# Auto-migrate: add password reset columns if they don't exist
-begin
-  existing = DB[:information_schema__columns]
-    .where(table_schema: DB.opts[:database], table_name: 'users')
-    .select_map(:column_name).map(&:to_s)
-  DB.run("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64) NULL")           unless existing.include?('reset_token')
-  DB.run("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME NULL")   unless existing.include?('reset_token_expires_at')
-rescue => e
-  puts "[DB] Migration warning: #{e.message}"
+# Auto-migrate: add password reset columns — each in its own rescue so one
+# "Duplicate column" error doesn't prevent the other column from being added.
+[
+  "ALTER TABLE users ADD COLUMN reset_token VARCHAR(64) NULL",
+  "ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME NULL",
+].each do |sql|
+  begin
+    DB.run(sql)
+    puts "[DB] Migration applied: #{sql.split('ADD COLUMN').last.strip}"
+  rescue Sequel::DatabaseError => e
+    raise unless e.message.include?('Duplicate column')
+  end
 end
