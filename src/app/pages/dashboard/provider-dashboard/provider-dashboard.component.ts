@@ -35,6 +35,7 @@ export class ProviderDashboardComponent implements OnInit {
   private bookingService = inject(BookingService);
 
   activeTab   = signal<'overview' | 'bookings' | 'services' | 'gallery' | 'settings'>('overview');
+  isLoading   = signal(true);
   categories  = SERVICE_CATEGORIES;
   isSaving    = signal(false);
   saveSuccess = signal(false);
@@ -106,6 +107,7 @@ export class ProviderDashboardComponent implements OnInit {
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab) this.activeTab.set(tab as 'overview' | 'bookings' | 'services' | 'gallery' | 'settings');
     await Promise.all([this.loadProfile(), this.loadBookings()]);
+    this.isLoading.set(false);
   }
 
   private async loadProfile() {

@@ -23,6 +23,7 @@ export class ClientDashboardComponent implements OnInit {
 
   activeTab = signal<'upcoming' | 'past' | 'profile'>('upcoming');
   bookings  = signal<Booking[]>([]);
+  isLoading = signal(true);
 
   profileName    = '';
   profilePhone   = '';
@@ -54,6 +55,7 @@ export class ClientDashboardComponent implements OnInit {
 
     const bookings = await this.bookingService.getClientBookings();
     this.bookings.set(bookings);
+    this.isLoading.set(false);
 
     const user = this.authService.currentUser();
     this.profileName     = user?.displayName || '';

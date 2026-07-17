@@ -6,6 +6,12 @@ module Routes
 
       # ── Helpers ──────────────────────────────────────────────────────
       app.helpers do
+        def sync_starting_price(pid)
+          min      = DB[:services].where(provider_id: pid, active: 1).min(:price).to_f
+          currency = DB[:services].where(provider_id: pid, active: 1).order(:price).first&.dig(:currency) || 'USD'
+          DB[:providers].where(id: pid).update(starting_price: min, currency: currency, updated_at: Time.now)
+        end
+
         def build_provider(row)
           return nil unless row
 
@@ -292,14 +298,6 @@ module Routes
       end
 
       # ── Services CRUD ─────────────────────────────────────────────────
-
-      # Recalculates starting_price on the provider row from their cheapest active service.
-      # Called after every service create / update / delete.
-      def sync_starting_price(pid)
-        min = DB[:services].where(provider_id: pid, active: 1).min(:price).to_f
-        currency = DB[:services].where(provider_id: pid, active: 1).order(:price).first&.dig(:currency) || 'USD'
-        DB[:providers].where(id: pid).update(starting_price: min, currency: currency, updated_at: Time.now)
-      end
 
       app.get '/api/providers/me/services' do
         require_provider!

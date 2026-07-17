@@ -97,23 +97,36 @@
             <h3>Recent Bookings</h3>
             <button class="btn btn-ghost btn-sm" (click)="activeTab.set('bookings')">View all</button>
           </div>
-          @for (booking of bookings().slice(0, 3); track booking.id) {
-            <div class="mini-booking">
-              <div class="mb-avatar">{{ booking.clientName[0] }}</div>
-              <div class="mb-info">
-                <p class="mb-name">{{ booking.clientName }}</p>
-                <p class="mb-service">{{ booking.serviceName }}</p>
+          @if (isLoading()) {
+            @for (n of [1,2,3]; track n) {
+              <div class="mini-booking">
+                <div class="skeleton sk-avatar-sm"></div>
+                <div class="mb-info" style="flex:1">
+                  <div class="skeleton sk-line" style="width:50%;margin-bottom:6px"></div>
+                  <div class="skeleton sk-line-sm" style="width:35%"></div>
+                </div>
+                <div class="skeleton sk-badge"></div>
               </div>
-              <div class="mb-date">
-                <p>{{ booking.date }}</p>
-                <p class="mb-time">{{ booking.time }}</p>
+            }
+          } @else {
+            @for (booking of bookings().slice(0, 3); track booking.id) {
+              <div class="mini-booking">
+                <div class="mb-avatar">{{ booking.clientName[0] }}</div>
+                <div class="mb-info">
+                  <p class="mb-name">{{ booking.clientName }}</p>
+                  <p class="mb-service">{{ booking.serviceName }}</p>
+                </div>
+                <div class="mb-date">
+                  <p>{{ booking.date }}</p>
+                  <p class="mb-time">{{ booking.time }}</p>
+                </div>
+                <span class="status-badge" [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
+                <span class="mb-price">{{ booking.currency }} {{ booking.servicePrice }}</span>
               </div>
-              <span class="status-badge" [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
-              <span class="mb-price">{{ booking.currency }} {{ booking.servicePrice }}</span>
-            </div>
-          }
-          @if (bookings().length === 0) {
-            <p style="padding: 16px; color: var(--text-muted); font-size: 0.875rem;">No bookings yet.</p>
+            }
+            @if (bookings().length === 0) {
+              <p style="padding: 16px; color: var(--text-muted); font-size: 0.875rem;">No bookings yet.</p>
+            }
           }
         </div>
 
@@ -146,13 +159,28 @@
         <div class="section-header-row">
           <h2>All Bookings</h2>
         </div>
-        @if (bookings().length === 0) {
-          <div class="empty-bookings">
-            <i class="fas fa-calendar-times"></i>
-            <p>No bookings yet. Clients will appear here once they book your services.</p>
+        @if (isLoading()) {
+          <div style="display:flex;flex-direction:column;gap:12px">
+            @for (n of [1,2,3,4]; track n) {
+              <div class="skeleton-card">
+                <div class="skeleton sk-avatar"></div>
+                <div class="sk-body">
+                  <div class="skeleton sk-line" style="width:50%"></div>
+                  <div class="skeleton sk-line-sm" style="width:35%"></div>
+                </div>
+                <div class="skeleton sk-line" style="width:80px"></div>
+                <div class="skeleton sk-badge"></div>
+              </div>
+            }
           </div>
-        }
-        @for (booking of bookings(); track booking.id) {
+        } @else {
+          @if (bookings().length === 0) {
+            <div class="empty-bookings">
+              <i class="fas fa-calendar-times"></i>
+              <p>No bookings yet. Clients will appear here once they book your services.</p>
+            </div>
+          }
+          @for (booking of bookings(); track booking.id) {
           <div class="booking-card">
             <div class="booking-artist-info">
               <div class="ba-avatar prov">{{ booking.clientName[0] }}</div>
@@ -177,6 +205,7 @@
               }
             </div>
           </div>
+        }
         }
     </div>
 
@@ -475,4 +504,3 @@
     </div>
 
   </div>
-</div>

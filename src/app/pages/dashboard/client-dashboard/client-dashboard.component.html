@@ -55,7 +55,21 @@
       </div>
 
       <div [hidden]="activeTab() !== 'upcoming'">
-        @if (upcomingBookings.length === 0) {
+        @if (isLoading()) {
+          <div class="bookings-list">
+            @for (n of [1,2,3]; track n) {
+              <div class="skeleton-card">
+                <div class="skeleton sk-avatar"></div>
+                <div class="sk-body">
+                  <div class="skeleton sk-line" style="width:55%"></div>
+                  <div class="skeleton sk-line-sm" style="width:35%"></div>
+                </div>
+                <div class="skeleton sk-line" style="width:70px"></div>
+                <div class="skeleton sk-badge"></div>
+              </div>
+            }
+          </div>
+        } @else if (upcomingBookings.length === 0) {
           <div class="empty-bookings">
             <i class="fas fa-calendar-plus"></i>
             <h3>No upcoming bookings</h3>
@@ -98,7 +112,21 @@
       </div>
 
       <div [hidden]="activeTab() !== 'past'">
-        @if (pastBookings.length === 0) {
+        @if (isLoading()) {
+          <div class="bookings-list">
+            @for (n of [1,2,3]; track n) {
+              <div class="skeleton-card">
+                <div class="skeleton sk-avatar"></div>
+                <div class="sk-body">
+                  <div class="skeleton sk-line" style="width:55%"></div>
+                  <div class="skeleton sk-line-sm" style="width:35%"></div>
+                </div>
+                <div class="skeleton sk-line" style="width:70px"></div>
+                <div class="skeleton sk-badge"></div>
+              </div>
+            }
+          </div>
+        } @else if (pastBookings.length === 0) {
           <div class="empty-bookings">
             <i class="fas fa-history"></i>
             <h3>No past bookings yet</h3>
