@@ -113,8 +113,8 @@ module Routes
         require_admin!
         body = JSON.parse(request.body.read) rescue {}
 
-        halt 400, { error: 'Cannot modify another admin' }.to_json if
-          DB[:users].where(id: id, role: 'admin').first && id != @current_user['id']
+        halt 400, { error: 'You cannot change your own role.' }.to_json if
+          id == @current_user['id'] && body['role'].to_s != '' && body['role'].to_s != 'admin'
 
         updates = { updated_at: Time.now }
         updates[:role]   = body['role']   if %w[client provider admin].include?(body['role'].to_s)
@@ -145,8 +145,8 @@ module Routes
 
       app.delete '/api/admin/users/:id' do |id|
         require_admin!
-        halt 400, { error: 'Cannot delete an admin account' }.to_json if
-          DB[:users].where(id: id, role: 'admin').first
+        halt 400, { error: 'You cannot delete your own account.' }.to_json if
+          id == @current_user['id']
         DB[:users].where(id: id).delete
         { success: true }.to_json
       end
