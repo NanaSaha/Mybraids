@@ -53,7 +53,7 @@ export class AuthService {
       this.api.post<AuthResponse>('/auth/register', { email, password, displayName: name, role, phone })
     );
     this.saveSession(res);
-    this.router.navigate([role === 'provider' ? '/dashboard/provider' : '/']);
+    this.router.navigate([this.dashboardForRole(res.user.role)]);
   }
 
   async login(email: string, password: string): Promise<void> {
@@ -61,7 +61,21 @@ export class AuthService {
       this.api.post<AuthResponse>('/auth/login', { email, password })
     );
     this.saveSession(res);
-    this.router.navigate([res.user.role === 'provider' ? '/dashboard/provider' : '/']);
+    this.router.navigate([this.dashboardForRole(res.user.role)]);
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    await firstValueFrom(this.api.post('/auth/forgot-password', { email }));
+  }
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await firstValueFrom(this.api.post('/auth/reset-password', { token, password }));
+  }
+
+  private dashboardForRole(role: UserRole): string {
+    if (role === 'admin') return '/dashboard/admin';
+    if (role === 'provider') return '/dashboard/provider';
+    return '/dashboard/client';
   }
 
   /**
@@ -96,7 +110,7 @@ export class AuthService {
             this.api.post<AuthResponse>('/auth/google', { idToken: response.credential, role: resolveRole() })
           );
           this.saveSession(res);
-          this.router.navigate([res.user.role === 'provider' ? '/dashboard/provider' : '/']);
+          this.router.navigate([this.dashboardForRole(res.user.role)]);
         } catch (err: any) {
           onError(err?.error?.error || 'Google sign-in failed. Please try again.');
         }

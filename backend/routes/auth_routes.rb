@@ -2,6 +2,7 @@ require 'bcrypt'
 require 'net/http'
 require_relative '../middleware/jwt_auth'
 require_relative '../mailers/welcome_mailer'
+require_relative '../mailers/mailer'
 
 module Routes
   module Auth
@@ -150,6 +151,57 @@ module Routes
         }.to_json
       end
 
+      # POST /api/auth/forgot-password
+      app.post '/api/auth/forgot-password' do
+        body  = JSON.parse(request.body.read) rescue {}
+        email = body['email'].to_s.strip.downcase
+        halt 422, { error: 'Email required' }.to_json if email.empty?
+
+        user = DB[:users].where(email: email).first
+        if user
+          token      = SecureRandom.hex(32)
+          expires_at = Time.now + 3600
+          DB[:users].where(id: user[:id]).update(
+            reset_token:            token,
+            reset_token_expires_at: expires_at,
+            updated_at:             Time.now
+          )
+          reset_url = "#{ENV.fetch('FRONTEND_URL', 'http://localhost:4200')}/auth/reset-password?token=#{token}"
+          Thread.new do
+            Mailer.deliver(
+              to:      email,
+              subject: 'Reset your MyBraids password',
+              html:    password_reset_html(user[:display_name] || 'there', reset_url)
+            )
+          end
+        end
+        # Always return success to prevent email enumeration
+        { message: 'If an account with that email exists, a password reset link has been sent.' }.to_json
+      end
+
+      # POST /api/auth/reset-password
+      app.post '/api/auth/reset-password' do
+        body     = JSON.parse(request.body.read) rescue {}
+        token    = body['token'].to_s.strip
+        password = body['password'].to_s
+        halt 422, { error: 'Token and password are required' }.to_json if token.empty? || password.length < 8
+
+        user = DB[:users].where(reset_token: token).first
+        halt 400, { error: 'Invalid or expired reset link. Please request a new one.' }.to_json unless user
+
+        if user[:reset_token_expires_at].nil? || Time.now > user[:reset_token_expires_at]
+          halt 400, { error: 'Reset link has expired. Please request a new one.' }.to_json
+        end
+
+        DB[:users].where(id: user[:id]).update(
+          password_hash:          BCrypt::Password.create(password),
+          reset_token:            nil,
+          reset_token_expires_at: nil,
+          updated_at:             Time.now
+        )
+        { message: 'Password updated successfully. You can now sign in.' }.to_json
+      end
+
       # PUT /api/auth/profile — update name / phone / location
       app.put '/api/auth/profile' do
         authenticate!
@@ -163,6 +215,50 @@ module Routes
 
         DB[:users].where(id: @current_user['id']).update(updates)
         { success: true }.to_json
+      end
+      app.helpers do
+        def password_reset_html(name, reset_url)
+          first = name.to_s.split(' ').first
+          <<~HTML
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+            <body style="margin:0;padding:0;background:#f5f0eb;font-family:'DM Sans',Arial,sans-serif;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:40px 0;">
+                <tr><td align="center">
+                  <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+                    <tr>
+                      <td style="background:#C85A2E;border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
+                        <p style="margin:0;font-size:26px;font-weight:800;color:#fff;">✂️ MyBraids</p>
+                        <p style="margin:8px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Password Reset</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="background:#fff;padding:40px;border-radius:0 0 16px 16px;">
+                        <h2 style="margin:0 0 12px;font-size:20px;color:#1C0A00;">Hi #{first},</h2>
+                        <p style="font-size:15px;color:#4a3728;line-height:1.6;margin:0 0 28px;">
+                          We received a request to reset your password. Click the button below — this link expires in <strong>1 hour</strong>.
+                        </p>
+                        <table cellpadding="0" cellspacing="0" width="100%"><tr><td align="center" style="padding-bottom:28px;">
+                          <a href="#{reset_url}"
+                             style="display:inline-block;background:#C85A2E;color:#fff;font-weight:700;font-size:15px;
+                                    text-decoration:none;padding:14px 36px;border-radius:50px;">
+                            Reset My Password
+                          </a>
+                        </td></tr></table>
+                        <p style="font-size:13px;color:#9e8878;margin:0;">
+                          If you didn't request this, you can safely ignore this email — your password won't change.
+                        </p>
+                        <p style="margin:28px 0 0;font-size:12px;color:#bbb;text-align:center;">© #{Time.now.year} MyBraids</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+          HTML
+        end
       end
     end
   end

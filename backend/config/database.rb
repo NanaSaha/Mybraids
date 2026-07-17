@@ -15,3 +15,14 @@ DB = Sequel.connect(
 )
 
 DB.loggers << Logger.new($stdout) if ENV['RACK_ENV'] == 'development'
+
+# Auto-migrate: add password reset columns if they don't exist
+begin
+  existing = DB[:information_schema__columns]
+    .where(table_schema: DB.opts[:database], table_name: 'users')
+    .select_map(:column_name).map(&:to_s)
+  DB.run("ALTER TABLE users ADD COLUMN reset_token VARCHAR(64) NULL")           unless existing.include?('reset_token')
+  DB.run("ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME NULL")   unless existing.include?('reset_token_expires_at')
+rescue => e
+  puts "[DB] Migration warning: #{e.message}"
+end

@@ -118,7 +118,27 @@
   @if (mobileMenuOpen()) {
     <div class="mobile-menu" (click)="closeMenus()">
       <nav class="mobile-nav">
-        @if (authService.isProvider) {
+
+        <!-- Profile header (authenticated) -->
+        @if (authService.isAuthenticated) {
+          <div class="mobile-profile">
+            <div class="mobile-avatar">
+              {{ getInitials(authService.currentUser()?.displayName || 'U') }}
+            </div>
+            <div class="mobile-profile-info">
+              <p class="mobile-profile-name">{{ authService.currentUser()?.displayName }}</p>
+              <p class="mobile-profile-email">{{ authService.currentUser()?.email }}</p>
+            </div>
+          </div>
+          <hr class="mobile-divider">
+        }
+
+        <!-- Navigation links by role -->
+        @if (authService.isAdmin) {
+          <a routerLink="/dashboard/admin" class="mobile-nav-item">
+            <i class="fas fa-shield-alt"></i> Admin Panel
+          </a>
+        } @else if (authService.isProvider) {
           <a routerLink="/dashboard/provider" class="mobile-nav-item">
             <i class="fas fa-chart-line"></i> Dashboard
           </a>
@@ -130,6 +150,22 @@
           </a>
           <a routerLink="/dashboard/provider" [queryParams]="{tab:'settings'}" class="mobile-nav-item">
             <i class="fas fa-cog"></i> Settings
+          </a>
+        } @else if (authService.isAuthenticated) {
+          <a routerLink="/dashboard/client" class="mobile-nav-item">
+            <i class="fas fa-calendar-check"></i> My Bookings
+          </a>
+          <a routerLink="/search" class="mobile-nav-item">
+            <i class="fas fa-search"></i> Find Artists
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'hair'}" class="mobile-nav-item">
+            <i class="fas fa-scissors"></i> Hair
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'makeup'}" class="mobile-nav-item">
+            <i class="fas fa-palette"></i> Makeup
+          </a>
+          <a routerLink="/search" [queryParams]="{category:'eyelashes'}" class="mobile-nav-item">
+            <i class="fas fa-eye"></i> Lashes
           </a>
         } @else {
           <a routerLink="/search" class="mobile-nav-item">
@@ -146,9 +182,10 @@
           </a>
         }
 
+        <hr class="mobile-divider">
+
         @if (authService.isAuthenticated) {
-          <hr class="mobile-divider">
-          @if (!authService.isProvider) {
+          @if (!authService.isProvider && !authService.isAdmin) {
             <a routerLink="/auth/register" [queryParams]="{role:'provider'}" class="mobile-nav-item">
               <i class="fas fa-paint-brush"></i> Become an Artist
             </a>
@@ -157,7 +194,6 @@
             <i class="fas fa-sign-out-alt"></i> Sign Out
           </button>
         } @else {
-          <hr class="mobile-divider">
           <a routerLink="/auth/login" class="mobile-nav-item">Sign In</a>
           <a routerLink="/auth/register" class="btn btn-primary w-full mt-2">Join Free</a>
         }
