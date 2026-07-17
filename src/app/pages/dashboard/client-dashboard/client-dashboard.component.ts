@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
@@ -18,12 +18,15 @@ import { firstValueFrom } from 'rxjs';
 export class ClientDashboardComponent implements OnInit {
   authService = inject(AuthService);
   private bookingService = inject(BookingService);
-  private api = inject(ApiService);
+  private api  = inject(ApiService);
+  private route = inject(ActivatedRoute);
 
   activeTab = signal<'upcoming' | 'past' | 'profile'>('upcoming');
   bookings  = signal<Booking[]>([]);
 
+  profileName    = '';
   profilePhone   = '';
+  profileLocation = '';
   profileSaving  = signal(false);
   profileSuccess = signal(false);
   profileError   = signal('');
@@ -44,9 +47,18 @@ export class ClientDashboardComponent implements OnInit {
   }
 
   async ngOnInit() {
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'profile' || tab === 'upcoming' || tab === 'past') {
+      this.activeTab.set(tab);
+    }
+
     const bookings = await this.bookingService.getClientBookings();
     this.bookings.set(bookings);
-    this.profilePhone = this.authService.currentUser()?.phone || '';
+
+    const user = this.authService.currentUser();
+    this.profileName     = user?.displayName || '';
+    this.profilePhone    = user?.phone       || '';
+    this.profileLocation = user?.location    || '';
   }
 
   async saveProfile() {
@@ -54,7 +66,11 @@ export class ClientDashboardComponent implements OnInit {
     this.profileSaving.set(true);
     this.profileError.set('');
     try {
-      await this.authService.updateProfile({ phone: this.profilePhone.trim() });
+      await this.authService.updateProfile({
+        displayName: this.profileName.trim() || undefined,
+        phone:       this.profilePhone.trim(),
+        location:    this.profileLocation.trim() || undefined,
+      });
       this.profileSuccess.set(true);
       setTimeout(() => this.profileSuccess.set(false), 3000);
     } catch {
