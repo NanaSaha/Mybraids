@@ -54,7 +54,7 @@
         </button>
       </div>
 
-      @if (activeTab() === 'upcoming') {
+      <div [hidden]="activeTab() !== 'upcoming'">
         @if (upcomingBookings.length === 0) {
           <div class="empty-bookings">
             <i class="fas fa-calendar-plus"></i>
@@ -95,9 +95,9 @@
             }
           </div>
         }
-      }
+      </div>
 
-      @if (activeTab() === 'past') {
+      <div [hidden]="activeTab() !== 'past'">
         @if (pastBookings.length === 0) {
           <div class="empty-bookings">
             <i class="fas fa-history"></i>
@@ -169,10 +169,10 @@
             }
           </div>
         }
-      }
+      </div>
     </div>
 
-      @if (activeTab() === 'profile') {
+      <div [hidden]="activeTab() !== 'profile'">
         <div class="profile-settings-card">
           <div class="profile-avatar-section">
             <div class="profile-avatar-lg">{{ getInitials(authService.currentUser()?.displayName || 'U') }}</div>
@@ -229,7 +229,7 @@
             @else { <i class="fas fa-save"></i> Save Profile }
           </button>
         </div>
-      }
+      </div>
 
   </div>
 </div>
