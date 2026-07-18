@@ -418,7 +418,7 @@
             <div class="form-group">
               <label>Service Category</label>
               <select class="form-control" [(ngModel)]="profileForm.category">
-                @for (cat of categoryOptions(); track cat) {
+                @for (cat of categoryOptions; track cat) {
                   <option [value]="cat">{{ cat | titlecase }}</option>
                 }
               </select>

@@ -498,15 +498,6 @@
       <div class="st-add-card">
         <h3 class="st-add-title"><i class="fas fa-plus-circle"></i> Add New Service</h3>
         <div class="st-add-row">
-          <input class="form-control st-select" type="text" list="st-cats"
-            placeholder="Category (e.g. Hair, Nails…)"
-            [ngModel]="newServiceTypeCategory()" (ngModelChange)="newServiceTypeCategory.set($event)"
-            (keyup.enter)="addServiceType()">
-          <datalist id="st-cats">
-            @for (cat of serviceCategories(); track cat) {
-              <option [value]="cat"></option>
-            }
-          </datalist>
           <input class="form-control st-input" type="text"
             placeholder="e.g. Box Braids, Balayage, Acrylic Nails…"
             [ngModel]="newServiceTypeName()" (ngModelChange)="newServiceTypeName.set($event)"
@@ -524,26 +515,18 @@
         <div class="loading-bar"></div>
       }
 
-      <!-- Grouped list -->
-      @for (cat of serviceCategories(); track cat) {
-        @if (servicesByCategory(cat).length > 0) {
-          <div class="st-group">
-            <div class="st-group-header">
-              <span class="st-group-label">{{ cat | titlecase }}</span>
-              <span class="st-count">{{ servicesByCategory(cat).length }}</span>
+      <!-- Flat chip list -->
+      @if (serviceTypes().length > 0) {
+        <div class="st-chips">
+          @for (st of serviceTypes(); track st.id) {
+            <div class="st-chip">
+              <span>{{ st.name }}</span>
+              <button class="st-chip-del" (click)="deleteServiceType(st.id)" title="Remove">
+                <i class="fas fa-times"></i>
+              </button>
             </div>
-            <div class="st-chips">
-              @for (st of servicesByCategory(cat); track st.id) {
-                <div class="st-chip">
-                  <span>{{ st.name }}</span>
-                  <button class="st-chip-del" (click)="deleteServiceType(st.id)" title="Remove">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
-        }
+          }
+        </div>
       }
 
       @if (!serviceTypesLoading() && serviceTypes().length === 0) {

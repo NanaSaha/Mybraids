@@ -98,7 +98,7 @@ export class AdminService {
     return firstValueFrom(this.api.get<{ id: string; name: string; category: string }[]>('/admin/service-types'));
   }
 
-  createServiceType(data: { name: string; category: string }): Promise<{ id: string }> {
+  createServiceType(data: { name: string }): Promise<{ id: string }> {
     return firstValueFrom(this.api.post<{ id: string }>('/admin/service-types', data));
   }
 

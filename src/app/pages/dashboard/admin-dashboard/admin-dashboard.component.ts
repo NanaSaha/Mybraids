@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +31,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   serviceTypes        = signal<{ id: string; name: string; category: string }[]>([]);
   serviceTypesLoading = signal(false);
   newServiceTypeName  = signal('');
-  newServiceTypeCategory = signal('');
   serviceTypeSaving   = signal(false);
   serviceTypeError    = signal('');
 
@@ -297,14 +296,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  serviceCategories = computed(() =>
-    [...new Set(this.serviceTypes().map(s => s.category))].sort()
-  );
-
-  servicesByCategory(cat: string) {
-    return this.serviceTypes().filter(s => s.category === cat);
-  }
-
   get bookingsByStatus(): Record<string, number> {
     return this.stats()?.bookings?.byStatus ?? {};
   }
@@ -326,7 +317,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.serviceTypeSaving.set(true);
     this.serviceTypeError.set('');
     try {
-      await this.adminService.createServiceType({ name, category: this.newServiceTypeCategory() });
+      await this.adminService.createServiceType({ name });
       this.newServiceTypeName.set('');
       await this.loadServiceTypes();
     } catch (e: any) {
