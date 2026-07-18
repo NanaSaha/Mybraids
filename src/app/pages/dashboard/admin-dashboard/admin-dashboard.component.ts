@@ -6,6 +6,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import {
   AdminService, AdminStats, AdminUser, AdminProvider, AdminBooking, AdminReview
 } from '../../../core/services/admin.service';
+import { AdminNavService } from '../../../core/services/admin-nav.service';
 
 type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews' | 'service-types';
 
@@ -18,7 +19,9 @@ type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews' | 'servic
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   private paramSub?: Subscription;
+  private navSub?:   Subscription;
   private adminService = inject(AdminService);
+  private adminNav     = inject(AdminNavService);
   private route        = inject(ActivatedRoute);
 
   activeTab   = signal<Tab>('overview');
@@ -77,14 +80,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   createError = signal('');
 
   ngOnInit() {
-    this.paramSub = this.route.queryParamMap.subscribe(params => {
-      const tab = params.get('tab') as Tab | null;
-      if (tab) this.setTab(tab);
-      else this.loadStats();
+    // React to navbar "Service Setup" clicks — works whether component is
+    // freshly created or already alive (BehaviorSubject replays last value).
+    let handled = false;
+    this.navSub = this.adminNav.tabRequest$.subscribe(tab => {
+      handled = true;
+      this.adminNav.clearTab();
+      this.setTab(tab as Tab);
     });
+
+    // Fallback: support direct URL navigation (?tab=service-types in the bar).
+    if (!handled) {
+      const urlTab = this.route.snapshot.queryParamMap.get('tab') as Tab | null;
+      if (urlTab) this.setTab(urlTab);
+      else        this.loadStats();
+    }
   }
 
-  ngOnDestroy() { this.paramSub?.unsubscribe(); }
+  ngOnDestroy() {
+    this.paramSub?.unsubscribe();
+    this.navSub?.unsubscribe();
+  }
 
   setTab(tab: Tab) {
     this.activeTab.set(tab);

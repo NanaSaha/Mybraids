@@ -1,7 +1,8 @@
 import { Component, inject, signal, HostListener } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { AdminNavService } from '../../../core/services/admin-nav.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,7 +12,9 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
-  authService = inject(AuthService);
+  authService     = inject(AuthService);
+  private router  = inject(Router);
+  private adminNav = inject(AdminNavService);
 
   isScrolled = signal(false);
   mobileMenuOpen = signal(false);
@@ -37,6 +40,12 @@ export class NavbarComponent {
 
   logout() {
     this.authService.logout();
+    this.closeMenus();
+  }
+
+  openServiceSetup(): void {
+    this.adminNav.requestTab('service-types');
+    this.router.navigate(['/dashboard/admin']);
     this.closeMenus();
   }
 
