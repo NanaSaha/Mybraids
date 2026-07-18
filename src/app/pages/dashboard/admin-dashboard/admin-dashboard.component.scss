@@ -672,18 +672,102 @@
   letter-spacing: 0.08em; color: #9e8878; margin: 0 0 8px;
 }
 
+// ── Mobile-only elements (hidden on desktop) ──────────────────────────────
+.mobile-admin-bar { display: none; }
+.sidebar-backdrop  { display: none; }
+.sidebar-close-btn { display: none; }
+
 // ── Responsive ────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .admin-shell { flex-direction: column; }
+  // Admin shell stacks vertically; sidebar is removed from flow (fixed drawer)
+  .admin-shell {
+    flex-direction: column;
+    margin-top: 72px;
+  }
+
+  // Mobile top bar — shows current section name + hamburger
+  .mobile-admin-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1C0A00;
+    color: #E8A030;
+    padding: 13px 16px;
+    position: sticky;
+    top: 72px; // stick just below the fixed main navbar
+    z-index: 90;
+  }
+
+  .mob-menu-btn {
+    background: none;
+    border: none;
+    color: #E8A030;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    &:hover { background: rgba(255,255,255,0.12); }
+  }
+
+  .mob-admin-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  // Sidebar becomes a fixed-position drawer that slides in from the left
   .admin-sidebar {
-    width: 100%; min-height: unset; height: auto;
-    position: static;
+    position: fixed;
+    top: 72px;
+    left: -240px;
+    width: 240px;
+    height: calc(100vh - 72px);
+    z-index: 300;
+    transition: left 0.25s ease;
+    box-shadow: none;
+    overflow-y: auto;
+
+    &.sidebar-open {
+      left: 0;
+      box-shadow: 6px 0 24px rgba(0,0,0,0.35);
+    }
   }
-  .sidebar-nav { flex-direction: row; padding: 8px; gap: 4px; overflow-x: auto; }
-  .nav-item { white-space: nowrap; padding: 8px 12px; border-left: none !important; border-bottom: 2px solid transparent;
-    &.active { border-bottom-color: #C85A2E; }
+
+  // Close button inside the sidebar brand (top-right of drawer)
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 16px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    &:hover { background: rgba(255,255,255,0.12); color: #fff; }
   }
+
+  // Semi-transparent backdrop behind the open drawer
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 72px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 299;
+  }
+
+  // Main content takes full width; sidebar is no longer in flow
   .admin-main { padding: 20px 16px; }
+
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .provider-grid { grid-template-columns: 1fr; }
+
+  // Ensure service setup table is scrollable on small screens
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }

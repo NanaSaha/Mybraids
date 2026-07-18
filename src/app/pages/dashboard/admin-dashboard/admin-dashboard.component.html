@@ -1,10 +1,26 @@
 <div class="admin-shell">
 
+  <!-- Mobile top bar (hidden on desktop) -->
+  <div class="mobile-admin-bar">
+    <button class="mob-menu-btn" (click)="sidebarOpen.set(true)" aria-label="Open menu">
+      <i class="fas fa-bars"></i>
+    </button>
+    <span class="mob-admin-title">{{ activeTabLabel }}</span>
+  </div>
+
+  <!-- Sidebar backdrop (mobile overlay) -->
+  @if (sidebarOpen()) {
+    <div class="sidebar-backdrop" (click)="sidebarOpen.set(false)"></div>
+  }
+
   <!-- Sidebar -->
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" [class.sidebar-open]="sidebarOpen()">
     <div class="sidebar-brand">
       <i class="fas fa-shield-alt"></i>
       <span>Admin</span>
+      <button class="sidebar-close-btn" (click)="sidebarOpen.set(false)" aria-label="Close menu">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
     <nav class="sidebar-nav">
 

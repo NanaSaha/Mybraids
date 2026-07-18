@@ -24,8 +24,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private adminNav     = inject(AdminNavService);
   private route        = inject(ActivatedRoute);
 
-  activeTab   = signal<Tab>('overview');
-  openGroup   = signal<string>('users');
+  activeTab    = signal<Tab>('overview');
+  openGroup    = signal<string>('users');
+  sidebarOpen  = signal(false);
 
   // Service types (admin-managed master list)
   serviceTypes        = signal<{ id: string; name: string }[]>([]);
@@ -104,6 +105,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   setTab(tab: Tab) {
+    this.sidebarOpen.set(false);
     this.activeTab.set(tab);
     if (tab === 'overview' && !this.stats())    this.loadStats();
     if (tab === 'users')         this.loadUsers();
@@ -115,6 +117,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   toggleGroup(group: string) {
     this.openGroup.set(this.openGroup() === group ? '' : group);
+  }
+
+  get activeTabLabel(): string {
+    const labels: Record<Tab, string> = {
+      'overview':      'Overview',
+      'users':         'Users',
+      'providers':     'Artists',
+      'bookings':      'Bookings',
+      'reviews':       'Reviews',
+      'service-types': 'Service Setup',
+    };
+    return labels[this.activeTab()] || 'Admin';
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -160,6 +174,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   goToUsers(role: string) {
+    this.sidebarOpen.set(false);
     this.userRoleFilter.set(role);
     this.userPage.set(1);
     this.activeTab.set('users');
