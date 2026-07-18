@@ -498,14 +498,15 @@
       <div class="st-add-card">
         <h3 class="st-add-title"><i class="fas fa-plus-circle"></i> Add New Service</h3>
         <div class="st-add-row">
-          <select class="form-control st-select" [ngModel]="newServiceTypeCategory()" (ngModelChange)="newServiceTypeCategory.set($event)">
-            <option value="hair">Hair</option>
-            <option value="makeup">Makeup</option>
-            <option value="eyelashes">Eyelashes</option>
-            <option value="nails">Nails</option>
-            <option value="skincare">Skincare</option>
-            <option value="other">Other</option>
-          </select>
+          <input class="form-control st-select" type="text" list="st-cats"
+            placeholder="Category (e.g. Hair, Nails…)"
+            [ngModel]="newServiceTypeCategory()" (ngModelChange)="newServiceTypeCategory.set($event)"
+            (keyup.enter)="addServiceType()">
+          <datalist id="st-cats">
+            @for (cat of serviceCategories(); track cat) {
+              <option [value]="cat"></option>
+            }
+          </datalist>
           <input class="form-control st-input" type="text"
             placeholder="e.g. Box Braids, Balayage, Acrylic Nails…"
             [ngModel]="newServiceTypeName()" (ngModelChange)="newServiceTypeName.set($event)"
@@ -524,15 +525,15 @@
       }
 
       <!-- Grouped list -->
-      @for (cat of serviceCategories; track cat.value) {
-        @if (servicesByCategory(cat.value).length > 0) {
+      @for (cat of serviceCategories(); track cat) {
+        @if (servicesByCategory(cat).length > 0) {
           <div class="st-group">
             <div class="st-group-header">
-              <span class="st-group-label">{{ cat.label }}</span>
-              <span class="st-count">{{ servicesByCategory(cat.value).length }}</span>
+              <span class="st-group-label">{{ cat | titlecase }}</span>
+              <span class="st-count">{{ servicesByCategory(cat).length }}</span>
             </div>
             <div class="st-chips">
-              @for (st of servicesByCategory(cat.value); track st.id) {
+              @for (st of servicesByCategory(cat); track st.id) {
                 <div class="st-chip">
                   <span>{{ st.name }}</span>
                   <button class="st-chip-del" (click)="deleteServiceType(st.id)" title="Remove">

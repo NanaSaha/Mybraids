@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
@@ -15,7 +16,8 @@ type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews' | 'servic
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
+  private paramSub?: Subscription;
   private adminService = inject(AdminService);
   private route        = inject(ActivatedRoute);
 
@@ -26,7 +28,7 @@ export class AdminDashboardComponent implements OnInit {
   serviceTypes        = signal<{ id: string; name: string; category: string }[]>([]);
   serviceTypesLoading = signal(false);
   newServiceTypeName  = signal('');
-  newServiceTypeCategory = signal('hair');
+  newServiceTypeCategory = signal('');
   serviceTypeSaving   = signal(false);
   serviceTypeError    = signal('');
 
@@ -75,10 +77,14 @@ export class AdminDashboardComponent implements OnInit {
   createError = signal('');
 
   ngOnInit() {
-    const tab = this.route.snapshot.queryParamMap.get('tab') as Tab | null;
-    if (tab) this.setTab(tab);
-    else this.loadStats();
+    this.paramSub = this.route.queryParamMap.subscribe(params => {
+      const tab = params.get('tab') as Tab | null;
+      if (tab) this.setTab(tab);
+      else this.loadStats();
+    });
   }
+
+  ngOnDestroy() { this.paramSub?.unsubscribe(); }
 
   setTab(tab: Tab) {
     this.activeTab.set(tab);
@@ -275,14 +281,9 @@ export class AdminDashboardComponent implements OnInit {
     return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
-  readonly serviceCategories = [
-    { value: 'hair',      label: 'Hair' },
-    { value: 'makeup',    label: 'Makeup' },
-    { value: 'eyelashes', label: 'Eyelashes' },
-    { value: 'nails',     label: 'Nails' },
-    { value: 'skincare',  label: 'Skincare' },
-    { value: 'other',     label: 'Other' },
-  ];
+  serviceCategories = computed(() =>
+    [...new Set(this.serviceTypes().map(s => s.category))].sort()
+  );
 
   servicesByCategory(cat: string) {
     return this.serviceTypes().filter(s => s.category === cat);

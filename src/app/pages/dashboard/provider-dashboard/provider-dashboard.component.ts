@@ -7,7 +7,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { ApiService } from '../../../core/services/api.service';
-import { SERVICE_CATEGORIES, ServiceCategory } from '../../../core/models/provider.model';
 import { Booking } from '../../../core/models/booking.model';
 import { firstValueFrom } from 'rxjs';
 
@@ -36,7 +35,13 @@ export class ProviderDashboardComponent implements OnInit {
 
   activeTab   = signal<'overview' | 'bookings' | 'services' | 'gallery' | 'settings'>('overview');
   isLoading   = signal(true);
-  categories  = SERVICE_CATEGORIES;
+
+  // Derives available specialty categories from the admin-managed service_types list.
+  // Falls back to default list when the admin hasn't created any service types yet.
+  categoryOptions = computed(() => {
+    const cats = [...new Set(this.serviceTypeOptions().map(s => s.category))].sort();
+    return cats.length > 0 ? cats : ['hair', 'makeup', 'eyelashes', 'nails', 'skincare'];
+  });
   isSaving    = signal(false);
   saveSuccess = signal(false);
   uploadError = signal('');
@@ -77,7 +82,7 @@ export class ProviderDashboardComponent implements OnInit {
   profileForm = {
     bio:              '',
     tagline:          '',
-    category:         'hair' as ServiceCategory,
+    category:         'hair',
     instagram:        '',
     city:             '',
     state:            '',
