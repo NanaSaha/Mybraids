@@ -80,6 +80,9 @@
                   <a routerLink="/dashboard/admin" class="dropdown-item">
                     <i class="fas fa-shield-alt"></i> Admin Panel
                   </a>
+                  <a routerLink="/dashboard/admin" [queryParams]="{tab:'service-types'}" class="dropdown-item">
+                    <i class="fas fa-tags"></i> Service Setup
+                  </a>
                 } @else if (authService.isProvider) {
                   <a routerLink="/dashboard/provider" class="dropdown-item">
                     <i class="fas fa-chart-line"></i> My Dashboard

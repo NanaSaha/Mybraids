@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import {
   AdminService, AdminStats, AdminUser, AdminProvider, AdminBooking, AdminReview
 } from '../../../core/services/admin.service';
@@ -17,9 +17,10 @@ type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews' | 'servic
 })
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
+  private route        = inject(ActivatedRoute);
 
   activeTab   = signal<Tab>('overview');
-  openGroup   = signal<string>('admin');
+  openGroup   = signal<string>('users');
 
   // Service types (admin-managed master list)
   serviceTypes        = signal<{ id: string; name: string; category: string }[]>([]);
@@ -74,7 +75,9 @@ export class AdminDashboardComponent implements OnInit {
   createError = signal('');
 
   ngOnInit() {
-    this.loadStats();
+    const tab = this.route.snapshot.queryParamMap.get('tab') as Tab | null;
+    if (tab) this.setTab(tab);
+    else this.loadStats();
   }
 
   setTab(tab: Tab) {
@@ -131,6 +134,13 @@ export class AdminDashboardComponent implements OnInit {
     await this.adminService.deleteUser(user.id);
     this.users.set(this.users().filter(u => u.id !== user.id));
     this.flash(`${user.displayName} deleted`);
+  }
+
+  goToUsers(role: string) {
+    this.userRoleFilter.set(role);
+    this.userPage.set(1);
+    this.activeTab.set('users');
+    this.loadUsers();
   }
 
   onUserSearch() {

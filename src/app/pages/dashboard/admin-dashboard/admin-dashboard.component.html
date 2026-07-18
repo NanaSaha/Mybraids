@@ -8,36 +8,33 @@
     </div>
     <nav class="sidebar-nav">
 
-      <!-- Overview (always visible) -->
+      <!-- Overview -->
       <button class="nav-item" [class.active]="activeTab()==='overview'" (click)="setTab('overview')">
         <i class="fas fa-chart-pie"></i> Overview
       </button>
 
-      <!-- Admin group -->
+      <!-- All Users group -->
       <div class="nav-group">
-        <button class="nav-group-header" [class.open]="openGroup()==='admin'" (click)="toggleGroup('admin')">
-          <span><i class="fas fa-shield-alt"></i> Admin</span>
+        <button class="nav-group-header" [class.open]="openGroup()==='users'" (click)="toggleGroup('users')">
+          <span><i class="fas fa-user-friends"></i> All Users</span>
           <i class="fas fa-chevron-down nav-group-arrow"></i>
         </button>
-        @if (openGroup()==='admin') {
+        @if (openGroup()==='users') {
           <div class="nav-group-items">
-            <button class="nav-item nav-sub" [class.active]="activeTab()==='service-types'" (click)="setTab('service-types')">
-              <i class="fas fa-tags"></i> Service Setup
+            <button class="nav-item nav-sub"
+              [class.active]="activeTab()==='users' && userRoleFilter()==='client'"
+              (click)="goToUsers('client')">
+              <i class="fas fa-user"></i> Clients
             </button>
-          </div>
-        }
-      </div>
-
-      <!-- Customers group -->
-      <div class="nav-group">
-        <button class="nav-group-header" [class.open]="openGroup()==='customers'" (click)="toggleGroup('customers')">
-          <span><i class="fas fa-user-friends"></i> Customers</span>
-          <i class="fas fa-chevron-down nav-group-arrow"></i>
-        </button>
-        @if (openGroup()==='customers') {
-          <div class="nav-group-items">
-            <button class="nav-item nav-sub" [class.active]="activeTab()==='users'" (click)="setTab('users')">
-              <i class="fas fa-users"></i> All Users
+            <button class="nav-item nav-sub"
+              [class.active]="activeTab()==='users' && userRoleFilter()==='provider'"
+              (click)="goToUsers('provider')">
+              <i class="fas fa-paint-brush"></i> Providers
+            </button>
+            <button class="nav-item nav-sub"
+              [class.active]="activeTab()==='users' && userRoleFilter()==='admin'"
+              (click)="goToUsers('admin')">
+              <i class="fas fa-shield-alt"></i> Admins
             </button>
           </div>
         }
@@ -54,24 +51,21 @@
             <button class="nav-item nav-sub" [class.active]="activeTab()==='providers'" (click)="setTab('providers')">
               <i class="fas fa-store"></i> All Providers
             </button>
-            <button class="nav-item nav-sub" [class.active]="activeTab()==='reviews'" (click)="setTab('reviews')">
-              <i class="fas fa-star"></i> Reviews
-            </button>
           </div>
         }
       </div>
 
-      <!-- Bookings (direct) -->
+      <!-- Reviews (standalone) -->
+      <button class="nav-item" [class.active]="activeTab()==='reviews'" (click)="setTab('reviews')">
+        <i class="fas fa-star"></i> Reviews
+      </button>
+
+      <!-- Bookings (standalone) -->
       <button class="nav-item" [class.active]="activeTab()==='bookings'" (click)="setTab('bookings')">
         <i class="fas fa-calendar-check"></i> Bookings
       </button>
 
     </nav>
-    <div class="sidebar-footer">
-      <a routerLink="/" class="nav-item">
-        <i class="fas fa-arrow-left"></i> Back to App
-      </a>
-    </div>
   </aside>
 
   <!-- Main content -->
@@ -233,7 +227,8 @@
           <input [(ngModel)]="userSearch" [ngModelOptions]="{standalone:true}"
                  (input)="onUserSearch()" placeholder="Search name or email…">
         </div>
-        <select [(ngModel)]="userRoleFilter" [ngModelOptions]="{standalone:true}" (change)="userPage.set(1);loadUsers()">
+        <select [ngModel]="userRoleFilter()" [ngModelOptions]="{standalone:true}"
+                (ngModelChange)="userRoleFilter.set($event); userPage.set(1); loadUsers()">
           <option value="">All roles</option>
           <option value="client">Client</option>
           <option value="provider">Provider</option>
