@@ -40,6 +40,12 @@ export class NavbarComponent {
     this.closeMenus();
   }
 
+  get logoRoute(): string {
+    if (this.authService.isAdmin) return '/dashboard/admin';
+    if (this.authService.isProvider) return '/dashboard/provider';
+    return '/';
+  }
+
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   }

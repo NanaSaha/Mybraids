@@ -93,4 +93,16 @@ export class AdminService {
   deleteReview(id: string): Promise<void> {
     return firstValueFrom(this.api.delete<void>(`/admin/reviews/${id}`));
   }
+
+  getServiceTypes(): Promise<{ id: string; name: string; category: string }[]> {
+    return firstValueFrom(this.api.get<{ id: string; name: string; category: string }[]>('/admin/service-types'));
+  }
+
+  createServiceType(data: { name: string; category: string }): Promise<{ id: string }> {
+    return firstValueFrom(this.api.post<{ id: string }>('/admin/service-types', data));
+  }
+
+  deleteServiceType(id: string): Promise<void> {
+    return firstValueFrom(this.api.delete<void>(`/admin/service-types/${id}`));
+  }
 }

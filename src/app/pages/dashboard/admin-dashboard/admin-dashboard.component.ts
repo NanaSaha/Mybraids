@@ -6,7 +6,7 @@ import {
   AdminService, AdminStats, AdminUser, AdminProvider, AdminBooking, AdminReview
 } from '../../../core/services/admin.service';
 
-type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews';
+type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews' | 'service-types';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -18,7 +18,16 @@ type Tab = 'overview' | 'users' | 'providers' | 'bookings' | 'reviews';
 export class AdminDashboardComponent implements OnInit {
   private adminService = inject(AdminService);
 
-  activeTab = signal<Tab>('overview');
+  activeTab   = signal<Tab>('overview');
+  openGroup   = signal<string>('admin');
+
+  // Service types (admin-managed master list)
+  serviceTypes        = signal<{ id: string; name: string; category: string }[]>([]);
+  serviceTypesLoading = signal(false);
+  newServiceTypeName  = signal('');
+  newServiceTypeCategory = signal('hair');
+  serviceTypeSaving   = signal(false);
+  serviceTypeError    = signal('');
 
   // Stats
   stats = signal<AdminStats | null>(null);
@@ -71,10 +80,15 @@ export class AdminDashboardComponent implements OnInit {
   setTab(tab: Tab) {
     this.activeTab.set(tab);
     if (tab === 'overview' && !this.stats())    this.loadStats();
-    if (tab === 'users')     this.loadUsers();
-    if (tab === 'providers') this.loadProviders();
-    if (tab === 'bookings')  this.loadBookings();
-    if (tab === 'reviews')   this.loadReviews();
+    if (tab === 'users')         this.loadUsers();
+    if (tab === 'providers')     this.loadProviders();
+    if (tab === 'bookings')      this.loadBookings();
+    if (tab === 'reviews')       this.loadReviews();
+    if (tab === 'service-types') this.loadServiceTypes();
+  }
+
+  toggleGroup(group: string) {
+    this.openGroup.set(this.openGroup() === group ? '' : group);
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────────
@@ -251,7 +265,54 @@ export class AdminDashboardComponent implements OnInit {
     return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
+  readonly serviceCategories = [
+    { value: 'hair',      label: 'Hair' },
+    { value: 'makeup',    label: 'Makeup' },
+    { value: 'eyelashes', label: 'Eyelashes' },
+    { value: 'nails',     label: 'Nails' },
+    { value: 'skincare',  label: 'Skincare' },
+    { value: 'other',     label: 'Other' },
+  ];
+
+  servicesByCategory(cat: string) {
+    return this.serviceTypes().filter(s => s.category === cat);
+  }
+
   get bookingsByStatus(): Record<string, number> {
     return this.stats()?.bookings?.byStatus ?? {};
+  }
+
+  // ── Service Types ─────────────────────────────────────────────────────────
+  async loadServiceTypes() {
+    this.serviceTypesLoading.set(true);
+    try {
+      const list = await this.adminService.getServiceTypes();
+      this.serviceTypes.set(list);
+    } catch { /* ignore */ } finally {
+      this.serviceTypesLoading.set(false);
+    }
+  }
+
+  async addServiceType() {
+    const name = this.newServiceTypeName().trim();
+    if (!name) { this.serviceTypeError.set('Name is required.'); return; }
+    this.serviceTypeSaving.set(true);
+    this.serviceTypeError.set('');
+    try {
+      await this.adminService.createServiceType({ name, category: this.newServiceTypeCategory() });
+      this.newServiceTypeName.set('');
+      await this.loadServiceTypes();
+    } catch (e: any) {
+      this.serviceTypeError.set(e?.error?.error || 'Could not save.');
+    } finally {
+      this.serviceTypeSaving.set(false);
+    }
+  }
+
+  async deleteServiceType(id: string) {
+    try {
+      await this.adminService.deleteServiceType(id);
+      this.serviceTypes.update(list => list.filter(s => s.id !== id));
+    } catch { /* ignore */ }
   }
 }

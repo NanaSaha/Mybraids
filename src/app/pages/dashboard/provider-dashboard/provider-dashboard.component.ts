@@ -48,6 +48,9 @@ export class ProviderDashboardComponent implements OnInit {
   providerId     = signal<string>('');
   isUploadingAvatar = signal(false);
 
+  // Master service type list (from admin)
+  serviceTypeOptions = signal<{ id: string; name: string; category: string }[]>([]);
+
   // Services & Pricing
   services        = signal<ProviderService[]>([]);
   showServiceForm = signal(false);
@@ -106,7 +109,7 @@ export class ProviderDashboardComponent implements OnInit {
   async ngOnInit() {
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab) this.activeTab.set(tab as 'overview' | 'bookings' | 'services' | 'gallery' | 'settings');
-    await Promise.all([this.loadProfile(), this.loadBookings()]);
+    await Promise.all([this.loadProfile(), this.loadBookings(), this.loadServiceTypes()]);
     this.isLoading.set(false);
   }
 
@@ -155,6 +158,13 @@ export class ProviderDashboardComponent implements OnInit {
       this.stats[1].value = String(thisMonth);
       this.stats[3].value = `$${revenue.toLocaleString()}`;
     } catch { /* keep dashes */ }
+  }
+
+  private async loadServiceTypes() {
+    try {
+      const list = await firstValueFrom(this.api.get<{ id: string; name: string; category: string }[]>('/service-types'));
+      this.serviceTypeOptions.set(list);
+    } catch { /* no master list yet — free text fallback */ }
   }
 
   getInitials(): string {

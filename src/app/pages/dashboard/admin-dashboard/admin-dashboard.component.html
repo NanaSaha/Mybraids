@@ -7,21 +7,65 @@
       <span>Admin</span>
     </div>
     <nav class="sidebar-nav">
-      <button class="nav-item" [class.active]="activeTab()==='overview'"   (click)="setTab('overview')">
+
+      <!-- Overview (always visible) -->
+      <button class="nav-item" [class.active]="activeTab()==='overview'" (click)="setTab('overview')">
         <i class="fas fa-chart-pie"></i> Overview
       </button>
-      <button class="nav-item" [class.active]="activeTab()==='users'"      (click)="setTab('users')">
-        <i class="fas fa-users"></i> Users
-      </button>
-      <button class="nav-item" [class.active]="activeTab()==='providers'"  (click)="setTab('providers')">
-        <i class="fas fa-store"></i> Providers
-      </button>
-      <button class="nav-item" [class.active]="activeTab()==='bookings'"   (click)="setTab('bookings')">
+
+      <!-- Admin group -->
+      <div class="nav-group">
+        <button class="nav-group-header" [class.open]="openGroup()==='admin'" (click)="toggleGroup('admin')">
+          <span><i class="fas fa-shield-alt"></i> Admin</span>
+          <i class="fas fa-chevron-down nav-group-arrow"></i>
+        </button>
+        @if (openGroup()==='admin') {
+          <div class="nav-group-items">
+            <button class="nav-item nav-sub" [class.active]="activeTab()==='service-types'" (click)="setTab('service-types')">
+              <i class="fas fa-tags"></i> Service Setup
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Customers group -->
+      <div class="nav-group">
+        <button class="nav-group-header" [class.open]="openGroup()==='customers'" (click)="toggleGroup('customers')">
+          <span><i class="fas fa-user-friends"></i> Customers</span>
+          <i class="fas fa-chevron-down nav-group-arrow"></i>
+        </button>
+        @if (openGroup()==='customers') {
+          <div class="nav-group-items">
+            <button class="nav-item nav-sub" [class.active]="activeTab()==='users'" (click)="setTab('users')">
+              <i class="fas fa-users"></i> All Users
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Artists group -->
+      <div class="nav-group">
+        <button class="nav-group-header" [class.open]="openGroup()==='artists'" (click)="toggleGroup('artists')">
+          <span><i class="fas fa-paint-brush"></i> Artists</span>
+          <i class="fas fa-chevron-down nav-group-arrow"></i>
+        </button>
+        @if (openGroup()==='artists') {
+          <div class="nav-group-items">
+            <button class="nav-item nav-sub" [class.active]="activeTab()==='providers'" (click)="setTab('providers')">
+              <i class="fas fa-store"></i> All Providers
+            </button>
+            <button class="nav-item nav-sub" [class.active]="activeTab()==='reviews'" (click)="setTab('reviews')">
+              <i class="fas fa-star"></i> Reviews
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Bookings (direct) -->
+      <button class="nav-item" [class.active]="activeTab()==='bookings'" (click)="setTab('bookings')">
         <i class="fas fa-calendar-check"></i> Bookings
       </button>
-      <button class="nav-item" [class.active]="activeTab()==='reviews'"    (click)="setTab('reviews')">
-        <i class="fas fa-star"></i> Reviews
-      </button>
+
     </nav>
     <div class="sidebar-footer">
       <a routerLink="/" class="nav-item">
@@ -446,6 +490,69 @@
           <p class="empty-state">No reviews yet</p>
         }
       </div>
+    }
+
+    <!-- ── SERVICE TYPES ────────────────────────────────────────────────── -->
+    @if (activeTab() === 'service-types') {
+      <div class="page-header">
+        <h1>Service Setup</h1>
+        <p>Define the master list of services providers can offer</p>
+      </div>
+
+      <!-- Add form -->
+      <div class="st-add-card">
+        <h3 class="st-add-title"><i class="fas fa-plus-circle"></i> Add New Service</h3>
+        <div class="st-add-row">
+          <select class="form-control st-select" [ngModel]="newServiceTypeCategory()" (ngModelChange)="newServiceTypeCategory.set($event)">
+            <option value="hair">Hair</option>
+            <option value="makeup">Makeup</option>
+            <option value="eyelashes">Eyelashes</option>
+            <option value="nails">Nails</option>
+            <option value="skincare">Skincare</option>
+            <option value="other">Other</option>
+          </select>
+          <input class="form-control st-input" type="text"
+            placeholder="e.g. Box Braids, Balayage, Acrylic Nails…"
+            [ngModel]="newServiceTypeName()" (ngModelChange)="newServiceTypeName.set($event)"
+            (keyup.enter)="addServiceType()">
+          <button class="btn btn-primary" (click)="addServiceType()" [disabled]="serviceTypeSaving()">
+            @if (serviceTypeSaving()) { <span class="spinner spinner-sm"></span> } @else { Add }
+          </button>
+        </div>
+        @if (serviceTypeError()) {
+          <p class="st-error"><i class="fas fa-exclamation-circle"></i> {{ serviceTypeError() }}</p>
+        }
+      </div>
+
+      @if (serviceTypesLoading()) {
+        <div class="loading-bar"></div>
+      }
+
+      <!-- Grouped list -->
+      @for (cat of serviceCategories; track cat.value) {
+        @if (servicesByCategory(cat.value).length > 0) {
+          <div class="st-group">
+            <div class="st-group-header">
+              <span class="st-group-label">{{ cat.label }}</span>
+              <span class="st-count">{{ servicesByCategory(cat.value).length }}</span>
+            </div>
+            <div class="st-chips">
+              @for (st of servicesByCategory(cat.value); track st.id) {
+                <div class="st-chip">
+                  <span>{{ st.name }}</span>
+                  <button class="st-chip-del" (click)="deleteServiceType(st.id)" title="Remove">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      @if (!serviceTypesLoading() && serviceTypes().length === 0) {
+        <p class="empty-state">No services defined yet. Add your first one above.</p>
+      }
     }
 
   </main>

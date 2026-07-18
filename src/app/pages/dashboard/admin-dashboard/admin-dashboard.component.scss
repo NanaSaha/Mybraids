@@ -74,6 +74,121 @@
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 
+// ── Sidebar groups ─────────────────────────────────────────────────────────
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: color 0.15s;
+
+  span { display: flex; align-items: center; gap: 8px; i { width: 18px; text-align: center; } }
+  &:hover { color: rgba(255,255,255,0.8); }
+  &.open { color: #E8A030; }
+}
+
+.nav-group-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+
+  .open & { transform: rotate(180deg); }
+}
+
+.nav-group-items {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0,0,0,0.2);
+}
+
+.nav-sub {
+  padding-left: 36px !important;
+  font-size: 13px !important;
+}
+
+// ── Service Types UI ───────────────────────────────────────────────────────
+.st-add-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.st-add-title {
+  font-size: 15px; font-weight: 700; color: #1C0A00; margin: 0 0 16px;
+  i { color: #C85A2E; margin-right: 6px; }
+}
+
+.st-add-row {
+  display: flex; gap: 10px; align-items: center;
+
+  @media (max-width: 600px) { flex-direction: column; align-items: stretch; }
+}
+
+.st-select { width: 150px; flex-shrink: 0; }
+.st-input  { flex: 1; }
+
+.st-error {
+  color: #c0392b; font-size: 13px; margin: 10px 0 0;
+  i { margin-right: 4px; }
+}
+
+.st-group {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.st-group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.st-group-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: #7a5c48;
+}
+
+.st-count {
+  background: #f2ede8; color: #C85A2E; font-size: 12px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+}
+
+.st-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+
+.st-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: #f2ede8; border-radius: 20px;
+  padding: 5px 10px 5px 14px;
+  font-size: 13px; font-weight: 500; color: #1C0A00;
+}
+
+.st-chip-del {
+  background: none; border: none; cursor: pointer; padding: 2px 4px;
+  color: #C85A2E; font-size: 11px; border-radius: 50%;
+  transition: background 0.15s;
+  &:hover { background: rgba(200,90,46,0.15); }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────
 .admin-main {
   flex: 1;
@@ -221,6 +336,15 @@
   background: #fff; border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 560px;
+
+  .data-table thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+  }
 }
 
 .data-table {
