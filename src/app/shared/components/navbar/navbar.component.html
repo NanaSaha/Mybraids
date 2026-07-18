@@ -144,6 +144,9 @@
           <a routerLink="/dashboard/admin" class="mobile-nav-item">
             <i class="fas fa-shield-alt"></i> Admin Panel
           </a>
+          <button class="mobile-nav-item" (click)="openServiceSetup()">
+            <i class="fas fa-tags"></i> Service Setup
+          </button>
         } @else if (authService.isProvider) {
           <a routerLink="/dashboard/provider" class="mobile-nav-item">
             <i class="fas fa-chart-line"></i> Dashboard
