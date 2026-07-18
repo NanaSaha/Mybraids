@@ -515,23 +515,59 @@
         <div class="loading-bar"></div>
       }
 
-      <!-- Flat chip list -->
-      @if (serviceTypes().length > 0) {
-        <div class="st-chips">
-          @for (st of serviceTypes(); track st.id) {
-            <div class="st-chip">
-              <span>{{ st.name }}</span>
-              <button class="st-chip-del" (click)="deleteServiceType(st.id)" title="Remove">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          }
-        </div>
+      @if (serviceTypeError() && editingTypeId()) {
+        <p class="st-error"><i class="fas fa-exclamation-circle"></i> {{ serviceTypeError() }}</p>
       }
 
-      @if (!serviceTypesLoading() && serviceTypes().length === 0) {
-        <p class="empty-state">No services defined yet. Add your first one above.</p>
-      }
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Service Name</th>
+              <th style="width:160px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (st of serviceTypes(); track st.id) {
+              <tr>
+                <td>
+                  @if (editingTypeId() === st.id) {
+                    <input class="inline-edit-input" type="text"
+                      [ngModel]="editingTypeName()" (ngModelChange)="editingTypeName.set($event)"
+                      (keyup.enter)="saveEditType(st.id)"
+                      (keyup.escape)="cancelEditType()"
+                      #editInput>
+                  } @else {
+                    {{ st.name }}
+                  }
+                </td>
+                <td>
+                  <div class="action-group">
+                    @if (editingTypeId() === st.id) {
+                      <button class="btn-xs btn-success" (click)="saveEditType(st.id)">
+                        <i class="fas fa-check"></i> Save
+                      </button>
+                      <button class="btn-xs" style="background:#eee;color:#555" (click)="cancelEditType()">
+                        Cancel
+                      </button>
+                    } @else {
+                      <button class="btn-xs btn-info" (click)="startEditType(st.id, st.name)">
+                        <i class="fas fa-pencil"></i> Edit
+                      </button>
+                      <button class="btn-xs btn-delete" (click)="deleteServiceType(st.id)">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+            @if (!serviceTypesLoading() && serviceTypes().length === 0) {
+              <tr><td colspan="2" class="empty-row">No services defined yet. Add one above.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
 
   </main>

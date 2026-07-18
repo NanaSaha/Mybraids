@@ -283,8 +283,8 @@ module Routes
       # ── Service Types ─────────────────────────────────────────────────────
       app.get '/api/admin/service-types' do
         require_admin!
-        DB[:service_types].order(:category, :name).all.map { |s|
-          { id: s[:id], name: s[:name], category: s[:category] }
+        DB[:service_types].order(:name).all.map { |s|
+          { id: s[:id], name: s[:name] }
         }.to_json
       end
 
@@ -302,6 +302,15 @@ module Routes
         { id: id }.to_json
       end
 
+      app.put '/api/admin/service-types/:id' do |id|
+        require_admin!
+        body = JSON.parse(request.body.read) rescue {}
+        name = body['name'].to_s.strip
+        halt 422, { error: 'Name is required' }.to_json if name.empty?
+        DB[:service_types].where(id: id).update(name: name)
+        { success: true }.to_json
+      end
+
       app.delete '/api/admin/service-types/:id' do |id|
         require_admin!
         DB[:service_types].where(id: id).delete
@@ -311,8 +320,8 @@ module Routes
       # Public endpoint — providers fetch the list when building their service form
       app.get '/api/service-types' do
         authenticate!
-        DB[:service_types].order(:category, :name).all.map { |s|
-          { id: s[:id], name: s[:name], category: s[:category] }
+        DB[:service_types].order(:name).all.map { |s|
+          { id: s[:id], name: s[:name] }
         }.to_json
       end
 

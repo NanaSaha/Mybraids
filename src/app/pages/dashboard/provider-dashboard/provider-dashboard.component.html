@@ -418,8 +418,11 @@
             <div class="form-group">
               <label>Service Category</label>
               <select class="form-control" [(ngModel)]="profileForm.category">
-                @for (cat of categoryOptions; track cat) {
-                  <option [value]="cat">{{ cat | titlecase }}</option>
+                @if (categoryOptions().length === 0) {
+                  <option value="">No services set up by admin yet</option>
+                }
+                @for (name of categoryOptions(); track name) {
+                  <option [value]="name">{{ name }}</option>
                 }
               </select>
             </div>

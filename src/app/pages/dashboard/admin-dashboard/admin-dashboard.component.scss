@@ -392,6 +392,13 @@
   &:focus { outline: none; border-color: #C85A2E; }
 }
 
+.inline-edit-input {
+  padding: 5px 10px; border-radius: 6px;
+  border: 1.5px solid #C85A2E; font-size: 13px;
+  color: #1C0A00; background: #fff; width: 100%; max-width: 320px;
+  &:focus { outline: none; box-shadow: 0 0 0 3px rgba(200,90,46,.15); }
+}
+
 .action-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 .btn-xs {

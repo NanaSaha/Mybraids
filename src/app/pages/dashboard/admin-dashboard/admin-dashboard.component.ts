@@ -28,11 +28,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   openGroup   = signal<string>('users');
 
   // Service types (admin-managed master list)
-  serviceTypes        = signal<{ id: string; name: string; category: string }[]>([]);
+  serviceTypes        = signal<{ id: string; name: string }[]>([]);
   serviceTypesLoading = signal(false);
   newServiceTypeName  = signal('');
   serviceTypeSaving   = signal(false);
   serviceTypeError    = signal('');
+  editingTypeId       = signal<string | null>(null);
+  editingTypeName     = signal('');
 
   // Stats
   stats = signal<AdminStats | null>(null);
@@ -328,9 +330,33 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   async deleteServiceType(id: string) {
+    if (!confirm('Remove this service? Providers won\'t see it in their dropdown.')) return;
     try {
       await this.adminService.deleteServiceType(id);
       this.serviceTypes.update(list => list.filter(s => s.id !== id));
     } catch { /* ignore */ }
+  }
+
+  startEditType(id: string, name: string) {
+    this.editingTypeId.set(id);
+    this.editingTypeName.set(name);
+    this.serviceTypeError.set('');
+  }
+
+  cancelEditType() {
+    this.editingTypeId.set(null);
+    this.editingTypeName.set('');
+  }
+
+  async saveEditType(id: string) {
+    const name = this.editingTypeName().trim();
+    if (!name) { this.serviceTypeError.set('Name cannot be empty.'); return; }
+    try {
+      await this.adminService.updateServiceType(id, name);
+      this.serviceTypes.update(list => list.map(s => s.id === id ? { ...s, name } : s));
+      this.cancelEditType();
+    } catch (e: any) {
+      this.serviceTypeError.set(e?.error?.error || 'Could not save.');
+    }
   }
 }

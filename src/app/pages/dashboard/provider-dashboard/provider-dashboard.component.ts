@@ -36,7 +36,8 @@ export class ProviderDashboardComponent implements OnInit {
   activeTab   = signal<'overview' | 'bookings' | 'services' | 'gallery' | 'settings'>('overview');
   isLoading   = signal(true);
 
-  readonly categoryOptions = ['hair', 'makeup', 'eyelashes', 'nails', 'skincare', 'other'];
+  // Specialty options pulled from the admin-managed service types list
+  categoryOptions = computed(() => this.serviceTypeOptions().map(s => s.name));
   isSaving    = signal(false);
   saveSuccess = signal(false);
   uploadError = signal('');
