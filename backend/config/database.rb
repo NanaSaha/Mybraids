@@ -26,6 +26,12 @@ DB.loggers << Logger.new($stdout) if ENV['RACK_ENV'] == 'development'
       category   VARCHAR(50)  NOT NULL DEFAULT 'other',
       created_at DATETIME     NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4|,
+  "ALTER TABLE users     ADD COLUMN date_of_birth DATE NULL",
+  "ALTER TABLE providers ADD COLUMN postcode      VARCHAR(20) NULL",
+  "ALTER TABLE providers ADD COLUMN account_type  ENUM('individual','company') NOT NULL DEFAULT 'individual'",
+  "ALTER TABLE providers ADD COLUMN company_name  VARCHAR(255) NULL",
+  "ALTER TABLE providers ADD COLUMN tax_id        VARCHAR(100) NULL",
+  "ALTER TABLE providers ADD COLUMN date_of_birth DATE NULL",
 ].each do |sql|
   begin
     DB.run(sql)
