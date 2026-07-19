@@ -77,7 +77,8 @@
     }
 
     <!-- Overview Tab -->
-    <div [hidden]="activeTab() !== 'overview'" class="overview-grid">
+    @if (activeTab() === 'overview') {
+    <div class="overview-grid">
         <!-- Stats -->
         <div class="stats-row">
           @for (stat of stats; track stat.label) {
@@ -153,9 +154,11 @@
           </div>
         </div>
     </div>
+    }
 
     <!-- Bookings Tab -->
-    <div [hidden]="activeTab() !== 'bookings'" class="bookings-section">
+    @if (activeTab() === 'bookings') {
+    <div class="bookings-section">
         <div class="section-header-row">
           <h2>All Bookings</h2>
         </div>
@@ -208,9 +211,11 @@
         }
         }
     </div>
+    }
 
     <!-- Services Tab -->
-    <div [hidden]="activeTab() !== 'services'" class="services-tab">
+    @if (activeTab() === 'services') {
+    <div class="services-tab">
 
         <!-- Header row -->
         <div class="section-header">
@@ -331,9 +336,11 @@
         }
 
     </div>
+    }
 
     <!-- Gallery Tab -->
-    <div [hidden]="activeTab() !== 'gallery'" class="gallery-section">
+    @if (activeTab() === 'gallery') {
+    <div class="gallery-section">
         <div class="section-header-row">
           <h2>Portfolio Gallery</h2>
           <label class="btn btn-primary" for="gallery-upload">
@@ -373,9 +380,11 @@
           </button>
         }
     </div>
+    }
 
     <!-- Settings Tab -->
-    <div [hidden]="activeTab() !== 'settings'" class="settings-section">
+    @if (activeTab() === 'settings') {
+    <div class="settings-section">
         <div class="settings-grid">
 
           <!-- Profile Picture -->
@@ -512,7 +521,8 @@
             @else { <i class="fas fa-save"></i> Save All Settings }
           </button>
         </div>
-      </div>
     </div>
+    }
 
   </div>
+</div>
