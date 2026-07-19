@@ -473,8 +473,8 @@
                 @if (categoryOptions().length === 0) {
                   <option value="">No services set up by admin yet</option>
                 }
-                @for (name of categoryOptions(); track name) {
-                  <option [value]="name">{{ name }}</option>
+                @for (cat of categoryOptions(); track cat) {
+                  <option [value]="cat">{{ formatCategory(cat) }}</option>
                 }
               </select>
             </div>

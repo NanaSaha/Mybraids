@@ -35,8 +35,10 @@ export class ProviderDashboardComponent implements OnInit {
   activeTab   = signal<'overview' | 'bookings' | 'services' | 'gallery' | 'settings'>('overview');
   isLoading   = signal(true);
 
-  // Specialty options pulled from the admin-managed service types list
-  categoryOptions = computed(() => this.serviceTypeOptions().map(s => s.name));
+  // Unique ENUM category values from admin-managed service types
+  categoryOptions = computed(() =>
+    [...new Set(this.serviceTypeOptions().map(s => s.category))].filter(Boolean)
+  );
   isSaving         = signal(false);
   saveSuccess      = signal(false);
   uploadError      = signal('');
@@ -390,6 +392,10 @@ export class ProviderDashboardComponent implements OnInit {
 
   formatDate(d: string): string {
     return this.bookingService.formatDate(d);
+  }
+
+  formatCategory(cat: string): string {
+    return cat.charAt(0).toUpperCase() + cat.slice(1);
   }
 
   // ── Services ──────────────────────────────────────────────────────────────

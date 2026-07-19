@@ -30,6 +30,7 @@ export interface ProviderLocation {
   state: string;
   country: string;
   address: string;
+  postcode?: string;
   lat: number;
   lng: number;
 }

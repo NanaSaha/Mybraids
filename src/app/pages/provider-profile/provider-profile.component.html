@@ -329,17 +329,32 @@
             }
           </div>
 
-          <!-- Location — city/country visible; full address hidden until booking -->
+          <!-- Location — city/country visible; full address hidden until booking (unless own profile) -->
           @if (provider()!.location.city) {
             <div class="sidebar-card">
               <h3><i class="fas fa-location-dot"></i> Location</h3>
               <p class="location-city">
                 {{ provider()!.location.city }}@if (provider()!.location.country) {, {{ provider()!.location.country }}}
               </p>
-              <div class="contact-hidden-notice" style="margin-top:10px">
-                <i class="fas fa-lock"></i>
-                <span>Full address shared after booking</span>
-              </div>
+              @if (authService.currentUser()?.uid === provider()!.userId && authService.isProvider) {
+                @if (provider()!.location.address) {
+                  <div class="own-contact-row" style="margin-top:8px">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ provider()!.location.address }}</span>
+                  </div>
+                }
+                @if (provider()!.location.postcode) {
+                  <div class="own-contact-row">
+                    <i class="fas fa-mail-bulk"></i>
+                    <span>{{ provider()!.location.postcode }}</span>
+                  </div>
+                }
+              } @else {
+                <div class="contact-hidden-notice" style="margin-top:10px">
+                  <i class="fas fa-lock"></i>
+                  <span>Full address shared after booking</span>
+                </div>
+              }
             </div>
           }
 
