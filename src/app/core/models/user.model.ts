@@ -8,6 +8,7 @@ export interface UserProfile {
   role: UserRole;
   phone: string;
   location: string;
+  dateOfBirth?: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -245,7 +245,7 @@
               </div>
             </div>
 
-            <div class="form-group form-group-full">
+            <div class="form-group">
               <label>Phone Number <span class="field-required">*</span></label>
               <div class="phone-input-row">
                 <select class="form-control phone-code-select" [(ngModel)]="profilePhoneCode" name="profilePhoneCode">
@@ -258,11 +258,19 @@
               </div>
             </div>
 
-            <div class="form-group form-group-full">
+            <div class="form-group">
               <label>Location</label>
               <div class="input-icon-wrap">
                 <i class="fas fa-map-marker-alt"></i>
                 <input type="text" class="form-control" placeholder="City, Country" [(ngModel)]="profileLocation" name="profileLocation">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Date of Birth <span class="optional-badge">Optional</span></label>
+              <div class="input-icon-wrap">
+                <i class="fas fa-birthday-cake"></i>
+                <input type="date" class="form-control" [(ngModel)]="profileDob" name="profileDob">
               </div>
             </div>
           </div>

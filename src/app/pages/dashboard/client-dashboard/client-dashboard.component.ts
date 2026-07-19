@@ -25,10 +25,11 @@ export class ClientDashboardComponent implements OnInit {
   bookings  = signal<Booking[]>([]);
   isLoading = signal(true);
 
-  profileName     = '';
-  profilePhone    = '';
-  profilePhoneCode = '+44';
+  profileName      = '';
+  profilePhone     = '';
+  profilePhoneCode  = '+44';
   profileLocation  = '';
+  profileDob       = '';
   avatarUrl        = signal<string | null>(null);
   avatarUploading  = signal(false);
   profileSaving    = signal(false);
@@ -117,8 +118,9 @@ export class ClientDashboardComponent implements OnInit {
 
     const user = this.authService.currentUser();
     if (user) {
-      this.profileName     = user.displayName || '';
-      this.profileLocation = user.location    || '';
+      this.profileName     = user.displayName  || '';
+      this.profileLocation = user.location     || '';
+      this.profileDob      = user.dateOfBirth  || '';
       this.avatarUrl.set(user.photoURL);
 
       const rawPhone = user.phone || '';
@@ -166,6 +168,7 @@ export class ClientDashboardComponent implements OnInit {
         displayName: this.profileName.trim() || undefined,
         phone:       `${this.profilePhoneCode}${this.profilePhone.trim()}`,
         location:    this.profileLocation.trim() || undefined,
+        dateOfBirth: this.profileDob || undefined,
       });
       this.profileSuccess.set(true);
       setTimeout(() => this.profileSuccess.set(false), 3000);

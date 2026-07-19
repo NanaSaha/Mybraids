@@ -19,7 +19,7 @@ module Routes
           uid = row[:user_id]
 
           # Direct users lookup avoids Sequel JOIN wildcard aliasing issues
-          user = DB[:users].where(id: uid).select(:display_name, :email, :phone).first || {}
+          user = DB[:users].where(id: uid).select(:display_name, :email, :phone, :date_of_birth).first || {}
 
           {
             id:              pid,
@@ -39,14 +39,19 @@ module Routes
             featured:        [true, 1].include?(row[:featured]),
             yearsExperience: row[:years_experience].to_i,
             instagram:       row[:instagram] || '',
+            accountType:     row[:account_type] || 'individual',
+            companyName:     row[:company_name] || '',
+            taxId:           row[:tax_id] || '',
+            dateOfBirth:     row[:date_of_birth]&.to_s || user[:date_of_birth]&.to_s || '',
             createdAt:       row[:created_at],
             location: {
-              city:    row[:city]    || '',
-              state:   row[:state]   || '',
-              country: row[:country] || '',
-              address: row[:address] || '',
-              lat:     row[:lat].to_f,
-              lng:     row[:lng].to_f
+              city:     row[:city]     || '',
+              state:    row[:state]    || '',
+              country:  row[:country]  || '',
+              address:  row[:address]  || '',
+              postcode: row[:postcode] || '',
+              lat:      row[:lat].to_f,
+              lng:      row[:lng].to_f
             },
             specialties:   DB[:provider_specialties].where(provider_id: pid).map { |s| s[:specialty] },
             galleryImages: DB[:gallery_images].where(provider_id: pid).order(:position).map { |g| g[:url] },
@@ -232,15 +237,33 @@ module Routes
         pid = DB[:providers].where(user_id: @current_user['id']).get(:id)
         halt 404, { error: 'Provider profile not found' }.to_json unless pid
 
+        valid_categories = %w[hair makeup eyelashes nails skincare other]
         to_camel = ->(s) { s.gsub(/_([a-z])/) { $1.upcase } }
 
         provider_fields = {}
-        %w[bio tagline category instagram years_experience city state country address lat lng].each do |f|
+        %w[bio tagline instagram years_experience city state country address postcode lat lng].each do |f|
           key       = f.to_sym
           camel_key = to_camel.call(f)
           provider_fields[key] = body[camel_key] if body.key?(camel_key)
           provider_fields[key] = body[f]         if body.key?(f)
         end
+
+        # category: only update if it's a valid ENUM value
+        cat_val = body['category'].to_s.strip
+        provider_fields[:category] = cat_val if valid_categories.include?(cat_val)
+
+        # account_type: only valid ENUM values
+        acct_type = body['accountType'].to_s.strip
+        provider_fields[:account_type] = acct_type if %w[individual company].include?(acct_type)
+
+        # company details
+        provider_fields[:company_name] = body['companyName'].to_s if body.key?('companyName')
+        provider_fields[:tax_id]       = body['taxId'].to_s       if body.key?('taxId')
+
+        # date of birth (stored on providers table for provider-specific DOB)
+        dob = body['dateOfBirth'].to_s.strip
+        provider_fields[:date_of_birth] = dob.empty? ? nil : dob
+
         provider_fields[:updated_at] = Time.now
         DB[:providers].where(id: pid).update(provider_fields)
 

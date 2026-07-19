@@ -476,7 +476,18 @@
   letter-spacing: 0.04em;
 }
 
-.field-required { color: var(--primary); }
+.field-required  { color: var(--primary); }
+
+.optional-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
 .profile-save-success {
   color: var(--sage);

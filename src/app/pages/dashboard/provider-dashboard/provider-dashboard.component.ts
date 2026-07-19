@@ -143,6 +143,10 @@ export class ProviderDashboardComponent implements OnInit {
     phoneCode:        '+1',
     phone:            '',
     years_experience: 0,
+    dateOfBirth:      '',
+    accountType:      'individual' as 'individual' | 'company',
+    companyName:      '',
+    taxId:            '',
   };
 
   locationBannerDismissed = signal(false);
@@ -197,6 +201,10 @@ export class ProviderDashboardComponent implements OnInit {
       } else {
         this.profileForm.phone = rawPhone;
       }
+      this.profileForm.dateOfBirth  = provider.dateOfBirth  || '';
+      this.profileForm.accountType  = provider.accountType  || 'individual';
+      this.profileForm.companyName  = provider.companyName  || '';
+      this.profileForm.taxId        = provider.taxId        || '';
       this.galleryImages.set(provider.galleryImages?.filter((u: string) => u) || []);
       if (provider.profileImage) this.profileImage.set(provider.profileImage);
       // Services come from the same /providers/me response — no separate GET needed
@@ -307,6 +315,7 @@ export class ProviderDashboardComponent implements OnInit {
     if (!f.postcode.trim())                                 missing.push('Postcode');
     if (!f.address.trim())                                  missing.push('Full Address');
     if (!f.phone.trim())                                    missing.push('Phone Number');
+    if (f.accountType === 'company' && !f.companyName.trim()) missing.push('Company Name');
     if (missing.length > 0) {
       this.uploadError.set(`Please complete all required fields: ${missing.join(', ')}`);
       return;
@@ -321,7 +330,7 @@ export class ProviderDashboardComponent implements OnInit {
       await firstValueFrom(this.api.put('/providers/me', {
         bio:              this.profileForm.bio,
         tagline:          this.profileForm.tagline,
-        category:         this.profileForm.category,
+        category:         this.profileForm.category || undefined,
         city:             this.profileForm.city,
         state:            this.profileForm.state,
         country:          this.profileForm.country,
@@ -329,6 +338,10 @@ export class ProviderDashboardComponent implements OnInit {
         address:          this.profileForm.address,
         years_experience: this.profileForm.years_experience,
         availability:     this.availability,
+        dateOfBirth:      this.profileForm.dateOfBirth || '',
+        accountType:      this.profileForm.accountType,
+        companyName:      this.profileForm.companyName,
+        taxId:            this.profileForm.taxId,
       }));
       if (fullPhone) {
         await firstValueFrom(this.api.put('/auth/profile', { phone: fullPhone }));

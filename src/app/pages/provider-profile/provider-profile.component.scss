@@ -829,6 +829,37 @@
   i { color: var(--primary); font-size: 0.85rem; }
 }
 
+.own-profile-contact {
+  margin-top: 12px;
+  background: var(--primary-pale);
+  border: 1.5px solid rgba(200, 90, 46, 0.2);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.own-profile-contact-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i { font-size: 0.75rem; }
+}
+
+.own-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.83rem;
+  color: var(--text);
+  margin-top: 5px;
+
+  i { color: var(--primary); width: 14px; font-size: 0.8rem; flex-shrink: 0; }
+}
+
 /* Location card */
 .location-address {
   font-size: 0.9rem;

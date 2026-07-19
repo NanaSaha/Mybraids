@@ -71,8 +71,9 @@ module Routes
             displayName: user[:display_name],
             photoURL:    user[:photo_url],
             role:        user[:role],
-            phone:       user[:phone],
-            location:    user[:location]
+            phone:        user[:phone],
+            location:     user[:location],
+            dateOfBirth:  user[:date_of_birth]&.to_s || ''
           }
         }.to_json
       end
@@ -145,8 +146,9 @@ module Routes
             displayName: user[:display_name],
             photoURL:    user[:photo_url],
             role:        user[:role],
-            phone:       user[:phone],
-            location:    user[:location]
+            phone:        user[:phone],
+            location:     user[:location],
+            dateOfBirth:  user[:date_of_birth]&.to_s || ''
           }
         }.to_json
       end
@@ -208,11 +210,13 @@ module Routes
         body = JSON.parse(request.body.read) rescue {}
 
         updates = {}
-        updates[:display_name] = body['displayName'].to_s.strip if body['displayName'].to_s.strip.length > 0
-        updates[:phone]        = body['phone'].to_s.strip       if body['phone'].to_s.strip.length > 0
-        updates[:location]     = body['location'].to_s          if body['location'].to_s.strip.length > 0
-        updates[:photo_url]    = body['photoURL'].to_s          if body['photoURL'].to_s.start_with?('http')
-        updates[:updated_at]   = Time.now
+        updates[:display_name]  = body['displayName'].to_s.strip if body['displayName'].to_s.strip.length > 0
+        updates[:phone]         = body['phone'].to_s.strip       if body['phone'].to_s.strip.length > 0
+        updates[:location]      = body['location'].to_s          if body['location'].to_s.strip.length > 0
+        updates[:photo_url]     = body['photoURL'].to_s          if body['photoURL'].to_s.start_with?('http')
+        dob = body['dateOfBirth'].to_s.strip
+        updates[:date_of_birth] = dob.empty? ? nil : dob        if body.key?('dateOfBirth')
+        updates[:updated_at]    = Time.now
 
         DB[:users].where(id: @current_user['id']).update(updates)
         { success: true }.to_json

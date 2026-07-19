@@ -15,6 +15,7 @@ interface AuthResponse {
     role: UserRole;
     phone: string;
     location: string;
+    dateOfBirth?: string;
   };
 }
 
@@ -140,7 +141,7 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  async updateProfile(data: { displayName?: string; phone?: string; location?: string; photoURL?: string }): Promise<void> {
+  async updateProfile(data: { displayName?: string; phone?: string; location?: string; photoURL?: string; dateOfBirth?: string }): Promise<void> {
     await firstValueFrom(this.api.put('/auth/profile', data));
     const current = this.currentUser();
     if (current) {
@@ -160,10 +161,11 @@ export class AuthService {
       displayName: u.displayName,
       photoURL:    u.photoURL,
       role:        u.role,
-      phone:       u.phone || '',
-      location:    u.location || '',
-      createdAt:   new Date(),
-      updatedAt:   new Date(),
+      phone:        u.phone || '',
+      location:     u.location || '',
+      dateOfBirth:  u.dateOfBirth || '',
+      createdAt:    new Date(),
+      updatedAt:    new Date(),
     };
   }
 }
