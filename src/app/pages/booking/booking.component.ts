@@ -34,6 +34,7 @@ export class BookingComponent implements OnInit {
   selectedService = signal<ServiceOffering | null>(null);
   selectedDate = signal('');
   selectedTime = signal('');
+  selectedPaymentMethod = signal('');
 
   clientName = '';
   clientPhone = '';
@@ -41,6 +42,13 @@ export class BookingComponent implements OnInit {
   clientEmail = '';
   clientLocation = '';
   notes = '';
+
+  readonly paymentMethods = [
+    { id: 'card',     label: 'Credit / Debit Card', desc: 'Visa, Mastercard, Amex', icon: '💳' },
+    { id: 'paypal',   label: 'PayPal',               desc: 'Pay via PayPal account', icon: '🅿️' },
+    { id: 'sepa',     label: 'Bank Transfer',         desc: 'SEPA / IBAN transfer',  icon: '🏦' },
+    { id: 'cash',     label: 'Cash',                  desc: 'Pay in person',          icon: '💵' },
+  ];
 
   readonly phoneCodes = [
     { code: '+1',   country: 'United States / Canada' },
@@ -199,10 +207,25 @@ export class BookingComponent implements OnInit {
     return !(slot.available === true || slot.available === 1);
   }
 
+  isStepLocked(step: number): boolean {
+    return step > this.currentStep();
+  }
+
   goToStep(step: number) {
-    if (step > this.currentStep() + 1) return;
-    this.stepAttempted.set(false);
-    this.currentStep.set(step as Step);
+    const current = this.currentStep();
+    if (step === current) return;
+    if (step < current) {
+      this.stepAttempted.set(false);
+      this.currentStep.set(step as Step);
+      return;
+    }
+    // Going forward: only one step at a time, only if current is complete
+    if (step === current + 1 && this.canProceed()) {
+      this.stepAttempted.set(false);
+      this.currentStep.set(step as Step);
+    } else {
+      this.stepAttempted.set(true);
+    }
   }
 
   tryNextStep() {
@@ -232,6 +255,7 @@ export class BookingComponent implements OnInit {
       case 1: return !!this.selectedService();
       case 2: return !!this.selectedDate() && !!this.selectedTime();
       case 3: return !!this.clientName && !!this.clientEmail && !!this.clientPhone.trim() && !!this.clientLocation.trim();
+      case 4: return !!this.selectedPaymentMethod();
       default: return true;
     }
   }
@@ -240,6 +264,9 @@ export class BookingComponent implements OnInit {
     const p = this.provider();
     const svc = this.selectedService();
     if (!p || !svc) return;
+
+    const pm = this.paymentMethods.find(m => m.id === this.selectedPaymentMethod());
+    const paymentLabel = pm ? pm.label : this.selectedPaymentMethod();
 
     this.isSubmitting.set(true);
     try {
@@ -251,6 +278,7 @@ export class BookingComponent implements OnInit {
         notes: this.notes,
         clientPhone: `${this.clientPhoneCode}${this.clientPhone.trim()}`,
         clientLocation: this.clientLocation,
+        paymentMethod: paymentLabel,
       });
       this.bookingId.set(id);
       this.isSuccess.set(true);

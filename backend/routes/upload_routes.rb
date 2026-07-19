@@ -63,6 +63,28 @@ module Routes
         { url: url }.to_json
       end
 
+      # POST /api/uploads/user-avatar — upload client/user avatar
+      app.post '/api/uploads/user-avatar' do
+        authenticate!
+
+        file = params[:file]
+        halt 422, { error: 'No file provided' }.to_json unless file
+
+        uid    = @current_user['id']
+        folder = "mybraids/avatars/#{uid}"
+
+        result = Cloudinary::Uploader.upload(
+          file[:tempfile].path,
+          folder:         folder,
+          resource_type:  'image',
+          transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face', quality: 'auto' }]
+        )
+
+        url = result['secure_url']
+        DB[:users].where(id: uid).update(photo_url: url, updated_at: Time.now)
+        { url: url }.to_json
+      end
+
       # DELETE /api/uploads/gallery — remove a gallery image
       app.delete '/api/uploads/gallery' do
         require_provider!

@@ -48,7 +48,10 @@
           <!-- Step Indicator -->
           <div class="step-indicator">
             @for (step of [1,2,3,4]; track step) {
-              <div class="step-item" [class.active]="currentStep() === step" [class.done]="currentStep() > step">
+              <div class="step-item"
+                [class.active]="currentStep() === step"
+                [class.done]="currentStep() > step"
+                [class.locked]="isStepLocked(step)">
                 <div class="step-circle" (click)="goToStep(step)">
                   @if (currentStep() > step) {
                     <i class="fas fa-check"></i>
@@ -263,6 +266,27 @@
                   Payment is collected directly with the artist at the time of your appointment.
                 </p>
               </div>
+
+              <!-- Payment Method -->
+              <div class="payment-section">
+                <h4>Payment Method <span class="required">*</span></h4>
+                <div class="payment-grid">
+                  @for (pm of paymentMethods; track pm.id) {
+                    <div class="payment-option" [class.selected]="selectedPaymentMethod() === pm.id"
+                      (click)="selectedPaymentMethod.set(pm.id)">
+                      <div class="payment-icon">{{ pm.icon }}</div>
+                      <div class="payment-label">
+                        <strong>{{ pm.label }}</strong>
+                        <span>{{ pm.desc }}</span>
+                      </div>
+                      <i class="fas fa-check-circle payment-check"></i>
+                    </div>
+                  }
+                </div>
+                @if (stepAttempted() && !selectedPaymentMethod()) {
+                  <p class="step-error" style="margin-top:12px"><i class="fas fa-exclamation-circle"></i> Please select a payment method.</p>
+                }
+              </div>
             </div>
           }
 
@@ -281,7 +305,9 @@
                 Continue <i class="fas fa-arrow-right"></i>
               </button>
             } @else {
-              <button class="btn btn-primary btn-lg" [disabled]="isSubmitting()" (click)="confirmBooking()">
+              <button class="btn btn-primary btn-lg"
+                [disabled]="isSubmitting()"
+                (click)="selectedPaymentMethod() ? confirmBooking() : (stepAttempted.set(true))">
                 @if (isSubmitting()) {
                   <div class="spinner"></div> Processing...
                 } @else {

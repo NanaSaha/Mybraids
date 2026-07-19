@@ -202,11 +202,27 @@
 
       <div [hidden]="activeTab() !== 'profile'">
         <div class="profile-settings-card">
+          <!-- Avatar -->
           <div class="profile-avatar-section">
-            <div class="profile-avatar-lg">{{ getInitials(authService.currentUser()?.displayName || 'U') }}</div>
+            <div class="profile-avatar-wrap">
+              @if (avatarUrl()) {
+                <img [src]="avatarUrl()!" class="profile-avatar-img" alt="Profile photo">
+              } @else {
+                <div class="profile-avatar-lg">{{ getInitials(authService.currentUser()?.displayName || 'U') }}</div>
+              }
+              <label class="avatar-upload-btn" [class.loading]="avatarUploading()" title="Change photo">
+                @if (avatarUploading()) {
+                  <span class="spinner spinner-sm"></span>
+                } @else {
+                  <i class="fas fa-camera"></i>
+                }
+                <input type="file" accept="image/*" class="avatar-file-input" (change)="onAvatarFileChange($event)">
+              </label>
+            </div>
             <div>
               <h3>{{ authService.currentUser()?.displayName }}</h3>
               <p class="profile-email-label">{{ authService.currentUser()?.email }}</p>
+              <p class="profile-photo-hint">Click the camera icon to update your photo</p>
             </div>
           </div>
 
@@ -229,15 +245,20 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group form-group-full">
               <label>Phone Number <span class="field-required">*</span></label>
-              <div class="input-icon-wrap">
-                <i class="fas fa-phone"></i>
-                <input type="tel" class="form-control" placeholder="+1 555 000 0000" [(ngModel)]="profilePhone" name="profilePhone">
+              <div class="phone-input-row">
+                <select class="form-control phone-code-select" [(ngModel)]="profilePhoneCode" name="profilePhoneCode">
+                  @for (p of phoneCodes; track p.code) {
+                    <option [value]="p.code">{{ p.code }} {{ p.country }}</option>
+                  }
+                </select>
+                <input type="tel" class="form-control phone-local-input" placeholder="7911 123456"
+                  [(ngModel)]="profilePhone" name="profilePhone">
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group form-group-full">
               <label>Location</label>
               <div class="input-icon-wrap">
                 <i class="fas fa-map-marker-alt"></i>

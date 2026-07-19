@@ -85,7 +85,8 @@ module Routes
           time:            body['time'],
           notes:           body['notes'].to_s,
           client_phone:    body['clientPhone'].to_s,
-          client_location: body['clientLocation'].to_s
+          client_location: body['clientLocation'].to_s,
+          payment_method:  body['paymentMethod'].to_s
         )
 
         { id: id }.to_json

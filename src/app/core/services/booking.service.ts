@@ -32,6 +32,7 @@ export class BookingService {
     notes?: string;
     clientPhone?: string;
     clientLocation?: string;
+    paymentMethod?: string;
   }): Promise<string> {
     try {
       const res = await firstValueFrom(

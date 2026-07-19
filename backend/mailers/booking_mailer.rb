@@ -5,7 +5,7 @@ module BookingMailer
   ADMIN_EMAIL = ENV.fetch('ADMIN_EMAIL', '')
 
   # Call this right after a booking is inserted. Runs in a background thread.
-  def self.send_booking_notifications(booking_id:, client_id:, provider_id:, service:, date:, time:, notes:, client_phone: '', client_location: '')
+  def self.send_booking_notifications(booking_id:, client_id:, provider_id:, service:, date:, time:, notes:, client_phone: '', client_location: '', payment_method: '')
     Thread.new do
       begin
         # Fetch names + emails from DB
@@ -35,14 +35,14 @@ module BookingMailer
         Mailer.deliver(
           to:      provider_email,
           subject: "New booking from #{client_name} — #{service[:name]} on #{date}",
-          html:    provider_email_html(provider_name, client_name, client_email, client_phone, client_location, service, date, time, notes, booking_url)
+          html:    provider_email_html(provider_name, client_name, client_email, client_phone, client_location, payment_method, service, date, time, notes, booking_url)
         ) unless provider_email.empty?
 
         # 3. Admin notification
         Mailer.deliver(
           to:      ADMIN_EMAIL,
           subject: "[MyBraids] New booking: #{client_name} → #{service[:name]} with #{provider_name}",
-          html:    admin_email_html(client_name, client_email, client_phone, client_location, provider_name, provider_email, provider_phone, provider_location, service, date, time, notes)
+          html:    admin_email_html(client_name, client_email, client_phone, client_location, payment_method, provider_name, provider_email, provider_phone, provider_location, service, date, time, notes)
         ) unless ADMIN_EMAIL.empty?
 
         puts "[BookingMailer] Notifications sent for booking #{booking_id}"
@@ -245,7 +245,7 @@ module BookingMailer
     HTML
   end
 
-  def self.provider_email_html(provider_name, client_name, client_email, client_phone, client_location, service, date, time, notes, booking_url)
+  def self.provider_email_html(provider_name, client_name, client_email, client_phone, client_location, payment_method, service, date, time, notes, booking_url)
     first = provider_name.to_s.split(' ').first
     price_str = "#{service[:currency]} #{sprintf('%.2f', service[:price].to_f)}"
     <<~HTML
@@ -284,6 +284,7 @@ module BookingMailer
                           #{detail_row('📧 Email',       client_email)}
                           #{client_phone.to_s.empty? ? '' : detail_row('📞 Phone', client_phone)}
                           #{client_location.to_s.empty? ? '' : detail_row('📍 Location', client_location)}
+                          #{payment_method.to_s.empty? ? '' : detail_row('💳 Payment', payment_method)}
                           #{detail_row('✂️ Service',     service[:name])}
                           #{detail_row('📅 Date',        format_date(date))}
                           #{detail_row('🕐 Time',        time.to_s)}
@@ -316,7 +317,7 @@ module BookingMailer
     HTML
   end
 
-  def self.admin_email_html(client_name, client_email, client_phone, client_location, provider_name, provider_email, provider_phone, provider_location, service, date, time, notes)
+  def self.admin_email_html(client_name, client_email, client_phone, client_location, payment_method, provider_name, provider_email, provider_phone, provider_location, service, date, time, notes)
     price_str = "#{service[:currency]} #{sprintf('%.2f', service[:price].to_f)}"
     <<~HTML
       <!DOCTYPE html>
@@ -343,6 +344,7 @@ module BookingMailer
                     #{detail_row('Client',           "#{client_name} &lt;#{client_email}&gt;")}
                     #{client_phone.to_s.empty? ? '' : detail_row('Client Phone', client_phone)}
                     #{client_location.to_s.empty? ? '' : detail_row('Client Location', client_location)}
+                    #{payment_method.to_s.empty? ? '' : detail_row('Payment Method', payment_method)}
                     #{detail_row('Provider',         "#{provider_name} &lt;#{provider_email}&gt;")}
                     #{provider_phone.to_s.empty? ? '' : detail_row('Provider Phone', provider_phone)}
                     #{provider_location.to_s.empty? ? '' : detail_row('Provider Location', provider_location)}

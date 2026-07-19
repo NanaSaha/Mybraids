@@ -211,6 +211,7 @@ module Routes
         updates[:display_name] = body['displayName'].to_s.strip if body['displayName'].to_s.strip.length > 0
         updates[:phone]        = body['phone'].to_s.strip       if body['phone'].to_s.strip.length > 0
         updates[:location]     = body['location'].to_s          if body['location'].to_s.strip.length > 0
+        updates[:photo_url]    = body['photoURL'].to_s          if body['photoURL'].to_s.start_with?('http')
         updates[:updated_at]   = Time.now
 
         DB[:users].where(id: @current_user['id']).update(updates)

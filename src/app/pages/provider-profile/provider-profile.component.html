@@ -299,33 +299,23 @@
                 <span class="specialty-pill">{{ spec }}</span>
               }
             </div>
-            @if (provider()!.phone) {
-              <a [href]="'tel:' + provider()!.phone" class="social-link">
-                <i class="fas fa-phone"></i> {{ provider()!.phone }}
-              </a>
-            }
-            @if (provider()!.email) {
-              <a [href]="'mailto:' + provider()!.email" class="social-link">
-                <i class="fas fa-envelope"></i> {{ provider()!.email }}
-              </a>
-            }
+            <div class="contact-hidden-notice">
+              <i class="fas fa-lock"></i>
+              <span>Contact details are shared after you book an appointment</span>
+            </div>
           </div>
 
-          <!-- Location -->
-          @if (provider()!.location.address || provider()!.location.city) {
+          <!-- Location — city/country visible; full address hidden until booking -->
+          @if (provider()!.location.city) {
             <div class="sidebar-card">
               <h3><i class="fas fa-location-dot"></i> Location</h3>
-              @if (provider()!.location.address) {
-                <p class="location-address">{{ provider()!.location.address }}</p>
-              }
-              @if (provider()!.location.city) {
-                <p class="location-city">
-                  {{ provider()!.location.city }}@if (provider()!.location.country) {, {{ provider()!.location.country }}}
-                </p>
-              }
-              <a [href]="mapsUrl" target="_blank" rel="noopener" class="btn btn-outline btn-sm maps-btn">
-                <i class="fab fa-google"></i> Open in Google Maps
-              </a>
+              <p class="location-city">
+                {{ provider()!.location.city }}@if (provider()!.location.country) {, {{ provider()!.location.country }}}
+              </p>
+              <div class="contact-hidden-notice" style="margin-top:10px">
+                <i class="fas fa-lock"></i>
+                <span>Full address shared after booking</span>
+              </div>
             </div>
           }
 

@@ -140,7 +140,7 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  async updateProfile(data: { displayName?: string; phone?: string; location?: string }): Promise<void> {
+  async updateProfile(data: { displayName?: string; phone?: string; location?: string; photoURL?: string }): Promise<void> {
     await firstValueFrom(this.api.put('/auth/profile', data));
     const current = this.currentUser();
     if (current) {
