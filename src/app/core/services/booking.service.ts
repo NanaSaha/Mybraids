@@ -30,6 +30,8 @@ export class BookingService {
     date: string;
     time: string;
     notes?: string;
+    clientPhone?: string;
+    clientLocation?: string;
   }): Promise<string> {
     try {
       const res = await firstValueFrom(

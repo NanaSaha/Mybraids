@@ -69,6 +69,9 @@
             <div class="step-content">
               <h2>Choose a Service</h2>
               <p class="step-desc">Select the service you'd like to book with {{ provider()?.name }}</p>
+              @if (stepAttempted() && !selectedService()) {
+                <p class="step-error"><i class="fas fa-exclamation-circle"></i> Please select a service to continue.</p>
+              }
               <div class="services-grid">
                 @for (service of provider()?.services; track service.id) {
                   <div
@@ -86,7 +89,6 @@
                     <div class="service-details">
                       <h4>{{ service.name }}</h4>
                       <p>{{ service.description }}</p>
-                      <span class="service-duration"><i class="fas fa-clock"></i> {{ service.duration }} min</span>
                     </div>
                     <div class="service-price-tag">
                       {{ service.currency }} {{ service.price }}
@@ -102,6 +104,9 @@
             <div class="step-content">
               <h2>Pick a Date & Time</h2>
               <p class="step-desc">Choose when you'd like your appointment</p>
+              @if (stepAttempted() && (!selectedDate() || !selectedTime())) {
+                <p class="step-error"><i class="fas fa-exclamation-circle"></i> Please select both a date and a time slot to continue.</p>
+              }
 
               <!-- Availability schedule -->
               <div class="avail-week">
@@ -164,17 +169,33 @@
               <div class="details-form">
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Full Name *</label>
-                    <input type="text" class="form-control" [(ngModel)]="clientName" placeholder="Your full name">
+                    <label>Full Name <span class="required">*</span></label>
+                    <input type="text" class="form-control" [(ngModel)]="clientName" placeholder="Your full name"
+                      [class.field-invalid]="stepAttempted() && !clientName">
                   </div>
                   <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" class="form-control" [(ngModel)]="clientEmail" placeholder="your@email.com">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" class="form-control" [(ngModel)]="clientEmail" placeholder="your@email.com"
+                      [class.field-invalid]="stepAttempted() && !clientEmail">
                   </div>
                 </div>
                 <div class="form-group">
-                  <label>Phone Number</label>
-                  <input type="tel" class="form-control" [(ngModel)]="clientPhone" placeholder="+1 555 000 0000">
+                  <label>Phone Number <span class="required">*</span></label>
+                  <div class="phone-input-row">
+                    <select class="form-control phone-code-select" [(ngModel)]="clientPhoneCode">
+                      @for (p of phoneCodes; track p.code) {
+                        <option [value]="p.code">{{ p.code }} {{ p.country }}</option>
+                      }
+                    </select>
+                    <input type="tel" class="form-control phone-local-input" [(ngModel)]="clientPhone" placeholder="7911 123456"
+                      [class.field-invalid]="stepAttempted() && !clientPhone.trim()">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Your Location <span class="required">*</span></label>
+                  <input type="text" class="form-control" [(ngModel)]="clientLocation"
+                    placeholder="e.g. London, UK or 12 Oak Street, Manchester"
+                    [class.field-invalid]="stepAttempted() && !clientLocation.trim()">
                 </div>
                 <div class="form-group">
                   <label>Special Requests or Notes</label>
@@ -195,10 +216,6 @@
                   <div class="summary-row">
                     <span>{{ selectedService()?.name }}</span>
                     <span class="summary-price">{{ selectedService()?.currency }} {{ selectedService()?.price }}</span>
-                  </div>
-                  <div class="summary-row muted">
-                    <span>Duration</span>
-                    <span>{{ selectedService()?.duration }} minutes</span>
                   </div>
                 </div>
                 <div class="summary-section">
@@ -222,12 +239,14 @@
                     <span>Email</span>
                     <span>{{ clientEmail }}</span>
                   </div>
-                  @if (clientPhone) {
-                    <div class="summary-row">
-                      <span>Phone</span>
-                      <span>{{ clientPhone }}</span>
-                    </div>
-                  }
+                  <div class="summary-row">
+                    <span>Phone</span>
+                    <span>{{ clientPhoneCode }}{{ clientPhone }}</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Location</span>
+                    <span>{{ clientLocation }}</span>
+                  </div>
                   @if (notes) {
                     <div class="summary-row">
                       <span>Notes</span>
@@ -258,7 +277,7 @@
             }
 
             @if (currentStep() < 4) {
-              <button class="btn btn-primary" [disabled]="!canProceed()" (click)="nextStep()">
+              <button class="btn btn-primary" (click)="tryNextStep()">
                 Continue <i class="fas fa-arrow-right"></i>
               </button>
             } @else {
@@ -294,7 +313,6 @@
                   <div class="ssp-header">Selected Service</div>
                   <p class="ssp-name">{{ selectedService()!.name }}</p>
                   <div class="ssp-meta">
-                    <span><i class="fas fa-clock"></i> {{ selectedService()!.duration }} min</span>
                     <span class="ssp-price">{{ selectedService()!.currency }} {{ selectedService()!.price }}</span>
                   </div>
                 </div>

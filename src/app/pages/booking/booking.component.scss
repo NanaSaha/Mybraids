@@ -289,6 +289,35 @@
   @media (max-width: 580px) { grid-template-columns: 1fr; }
 }
 
+.step-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff5f5;
+  border: 1.5px solid #f5c6c6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  color: #C62828;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.required { color: #C62828; font-weight: 700; }
+
+.field-invalid {
+  border-color: #C62828 !important;
+  background: #fff5f5 !important;
+  &:focus { box-shadow: 0 0 0 3px rgba(198,40,40,0.15) !important; }
+}
+
+.phone-input-row {
+  display: flex;
+  gap: 8px;
+}
+.phone-code-select { width: 200px; flex-shrink: 0; }
+.phone-local-input { flex: 1; }
+
 /* Review Summary */
 .review-summary {
   display: flex;

@@ -77,13 +77,15 @@ module Routes
         )
 
         BookingMailer.send_booking_notifications(
-          booking_id:  id,
-          client_id:   @current_user['id'],
-          provider_id: body['providerId'],
-          service:     service,
-          date:        body['date'],
-          time:        body['time'],
-          notes:       body['notes'].to_s
+          booking_id:      id,
+          client_id:       @current_user['id'],
+          provider_id:     body['providerId'],
+          service:         service,
+          date:            body['date'],
+          time:            body['time'],
+          notes:           body['notes'].to_s,
+          client_phone:    body['clientPhone'].to_s,
+          client_location: body['clientLocation'].to_s
         )
 
         { id: id }.to_json

@@ -169,9 +169,6 @@
                   <div class="service-info">
                     <h4 class="service-name">{{ service.name }}</h4>
                     <p class="service-desc">{{ service.description }}</p>
-                    <div class="service-meta">
-                      <span><i class="fas fa-clock"></i> {{ service.duration }} min</span>
-                    </div>
                   </div>
                   <div class="service-price">
                     <span class="price">{{ service.currency }} {{ service.price }}</span>
@@ -310,11 +307,6 @@
             @if (provider()!.email) {
               <a [href]="'mailto:' + provider()!.email" class="social-link">
                 <i class="fas fa-envelope"></i> {{ provider()!.email }}
-              </a>
-            }
-            @if (provider()!.instagram) {
-              <a href="https://instagram.com/{{ provider()!.instagram.replace('@','') }}" class="social-link" target="_blank">
-                <i class="fab fa-instagram"></i> {{ provider()!.instagram }}
               </a>
             }
           </div>

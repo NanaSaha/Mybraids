@@ -5,7 +5,7 @@ module BookingMailer
   ADMIN_EMAIL = ENV.fetch('ADMIN_EMAIL', '')
 
   # Call this right after a booking is inserted. Runs in a background thread.
-  def self.send_booking_notifications(booking_id:, client_id:, provider_id:, service:, date:, time:, notes:)
+  def self.send_booking_notifications(booking_id:, client_id:, provider_id:, service:, date:, time:, notes:, client_phone: '', client_location: '')
     Thread.new do
       begin
         # Fetch names + emails from DB
@@ -18,19 +18,32 @@ module BookingMailer
         provider_name  = provider_user&.dig(:display_name) || 'your artist'
         provider_email = provider_user&.dig(:email)         || ''
 
+        # Provider contact details
+        provider_phone    = prow&.dig(:phone).to_s
+        provider_location = parse_location(prow&.dig(:location))
+
         booking_url = "#{APP_URL}/dashboard"
 
-        # 1. Client confirmation
-        Mailer.deliver(to: client_email, subject: "Booking confirmed — #{service[:name]} on #{date}",
-                       html: client_email_html(client_name, provider_name, service, date, time, notes, booking_url)) unless client_email.empty?
+        # 1. Client confirmation (includes provider phone + location)
+        Mailer.deliver(
+          to:      client_email,
+          subject: "Booking confirmed — #{service[:name]} on #{date}",
+          html:    client_email_html(client_name, provider_name, provider_phone, provider_location, service, date, time, notes, booking_url)
+        ) unless client_email.empty?
 
-        # 2. Provider notification
-        Mailer.deliver(to: provider_email, subject: "New booking from #{client_name} — #{service[:name]} on #{date}",
-                       html: provider_email_html(provider_name, client_name, client_email, service, date, time, notes, booking_url)) unless provider_email.empty?
+        # 2. Provider notification (includes client phone + location)
+        Mailer.deliver(
+          to:      provider_email,
+          subject: "New booking from #{client_name} — #{service[:name]} on #{date}",
+          html:    provider_email_html(provider_name, client_name, client_email, client_phone, client_location, service, date, time, notes, booking_url)
+        ) unless provider_email.empty?
 
         # 3. Admin notification
-        Mailer.deliver(to: ADMIN_EMAIL, subject: "[MyBraids] New booking: #{client_name} → #{service[:name]} with #{provider_name}",
-                       html: admin_email_html(client_name, client_email, provider_name, provider_email, service, date, time, notes)) unless ADMIN_EMAIL.empty?
+        Mailer.deliver(
+          to:      ADMIN_EMAIL,
+          subject: "[MyBraids] New booking: #{client_name} → #{service[:name]} with #{provider_name}",
+          html:    admin_email_html(client_name, client_email, client_phone, client_location, provider_name, provider_email, provider_phone, provider_location, service, date, time, notes)
+        ) unless ADMIN_EMAIL.empty?
 
         puts "[BookingMailer] Notifications sent for booking #{booking_id}"
       rescue => e
@@ -104,6 +117,9 @@ module BookingMailer
         provider_name  = provider_user&.dig(:display_name)    || 'Artist'
         provider_email = provider_user&.dig(:email)           || ''
 
+        provider_phone    = prow&.dig(:phone).to_s
+        provider_location = parse_location(prow&.dig(:location))
+
         service_name = DB[:services].where(id: booking[:service_id]).get(:name) || 'Service'
         date_str     = booking[:booking_date].to_s
         time_str     = booking[:booking_time].to_s
@@ -127,6 +143,8 @@ module BookingMailer
                 #{detail_row('Service', service_name)}
                 #{detail_row('Date',    format_date(date_str))}
                 #{detail_row('Time',    time_str)}
+                #{provider_phone.empty? ? '' : detail_row('📞 Artist Phone', provider_phone)}
+                #{provider_location.empty? ? '' : detail_row('📍 Artist Location', provider_location)}
                 <p style="margin-top:24px">See you then! 🎉</p>
               </td></tr>
             </table></body></html>
@@ -145,7 +163,7 @@ module BookingMailer
 
   # ── Email templates ────────────────────────────────────────────────────────
 
-  def self.client_email_html(client_name, provider_name, service, date, time, notes, booking_url)
+  def self.client_email_html(client_name, provider_name, provider_phone, provider_location, service, date, time, notes, booking_url)
     first = client_name.to_s.split(' ').first
     price_str = "#{service[:currency]} #{sprintf('%.2f', service[:price].to_f)}"
     <<~HTML
@@ -184,8 +202,9 @@ module BookingMailer
                           #{detail_row('✂️ Service',  service[:name])}
                           #{detail_row('📅 Date',     format_date(date))}
                           #{detail_row('🕐 Time',     time.to_s)}
-                          #{detail_row('⏱ Duration', "#{service[:duration]} min")}
                           #{detail_row('💰 Price',    price_str)}
+                          #{provider_phone.to_s.empty? ? '' : detail_row('📞 Artist Phone', provider_phone)}
+                          #{provider_location.to_s.empty? ? '' : detail_row('📍 Artist Location', provider_location)}
                           #{notes.to_s.strip.empty? ? '' : detail_row('📝 Notes', notes)}
                         </table>
                       </td>
@@ -226,7 +245,7 @@ module BookingMailer
     HTML
   end
 
-  def self.provider_email_html(provider_name, client_name, client_email, service, date, time, notes, booking_url)
+  def self.provider_email_html(provider_name, client_name, client_email, client_phone, client_location, service, date, time, notes, booking_url)
     first = provider_name.to_s.split(' ').first
     price_str = "#{service[:currency]} #{sprintf('%.2f', service[:price].to_f)}"
     <<~HTML
@@ -261,13 +280,14 @@ module BookingMailer
                     <tr>
                       <td style="background:#f5f0eb;border-radius:12px;border:1.5px solid #e8ddd5;padding:24px;">
                         <table cellpadding="0" cellspacing="0" width="100%">
-                          #{detail_row('👤 Client',   client_name)}
-                          #{detail_row('📧 Email',    client_email)}
-                          #{detail_row('✂️ Service',  service[:name])}
-                          #{detail_row('📅 Date',     format_date(date))}
-                          #{detail_row('🕐 Time',     time.to_s)}
-                          #{detail_row('⏱ Duration', "#{service[:duration]} min")}
-                          #{detail_row('💰 Price',    price_str)}
+                          #{detail_row('👤 Client',      client_name)}
+                          #{detail_row('📧 Email',       client_email)}
+                          #{client_phone.to_s.empty? ? '' : detail_row('📞 Phone', client_phone)}
+                          #{client_location.to_s.empty? ? '' : detail_row('📍 Location', client_location)}
+                          #{detail_row('✂️ Service',     service[:name])}
+                          #{detail_row('📅 Date',        format_date(date))}
+                          #{detail_row('🕐 Time',        time.to_s)}
+                          #{detail_row('💰 Price',       price_str)}
                           #{notes.to_s.strip.empty? ? '' : detail_row('📝 Notes', notes)}
                         </table>
                       </td>
@@ -296,7 +316,7 @@ module BookingMailer
     HTML
   end
 
-  def self.admin_email_html(client_name, client_email, provider_name, provider_email, service, date, time, notes)
+  def self.admin_email_html(client_name, client_email, client_phone, client_location, provider_name, provider_email, provider_phone, provider_location, service, date, time, notes)
     price_str = "#{service[:currency]} #{sprintf('%.2f', service[:price].to_f)}"
     <<~HTML
       <!DOCTYPE html>
@@ -320,13 +340,16 @@ module BookingMailer
                 <td style="background:#ffffff;padding:36px 40px;border-radius:0 0 16px 16px;">
                   <h2 style="margin:0 0 20px;font-size:18px;font-weight:700;color:#1C0A00;">Booking Summary</h2>
                   <table cellpadding="0" cellspacing="0" width="100%">
-                    #{detail_row('Client',        "#{client_name} &lt;#{client_email}&gt;")}
-                    #{detail_row('Provider',      "#{provider_name} &lt;#{provider_email}&gt;")}
-                    #{detail_row('Service',       service[:name])}
-                    #{detail_row('Date',          format_date(date))}
-                    #{detail_row('Time',          time.to_s)}
-                    #{detail_row('Duration',      "#{service[:duration]} min")}
-                    #{detail_row('Price',         price_str)}
+                    #{detail_row('Client',           "#{client_name} &lt;#{client_email}&gt;")}
+                    #{client_phone.to_s.empty? ? '' : detail_row('Client Phone', client_phone)}
+                    #{client_location.to_s.empty? ? '' : detail_row('Client Location', client_location)}
+                    #{detail_row('Provider',         "#{provider_name} &lt;#{provider_email}&gt;")}
+                    #{provider_phone.to_s.empty? ? '' : detail_row('Provider Phone', provider_phone)}
+                    #{provider_location.to_s.empty? ? '' : detail_row('Provider Location', provider_location)}
+                    #{detail_row('Service',          service[:name])}
+                    #{detail_row('Date',             format_date(date))}
+                    #{detail_row('Time',             time.to_s)}
+                    #{detail_row('Price',            price_str)}
                     #{notes.to_s.strip.empty? ? '' : detail_row('Notes', notes)}
                   </table>
                   <p style="margin:28px 0 0;font-size:12px;color:#9e8878;text-align:center;">
@@ -430,11 +453,25 @@ module BookingMailer
     HTML
   end
 
+  # Parse provider location JSON into a readable string
+  def self.parse_location(location_raw)
+    return '' if location_raw.nil?
+    parsed = location_raw.is_a?(String) ? (JSON.parse(location_raw) rescue {}) : location_raw
+    parts = [
+      parsed['address'] || parsed[:address],
+      parsed['city']    || parsed[:city],
+      parsed['country'] || parsed[:country]
+    ].compact.reject(&:empty?)
+    parts.join(', ')
+  rescue
+    ''
+  end
+
   # Shared table row helper
   def self.detail_row(label, value)
     <<~ROW
       <tr>
-        <td style="padding:6px 0;width:110px;vertical-align:top;">
+        <td style="padding:6px 0;width:130px;vertical-align:top;">
           <span style="font-size:13px;font-weight:700;color:#7a5c4a;">#{label}</span>
         </td>
         <td style="padding:6px 0;vertical-align:top;">

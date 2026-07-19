@@ -29,6 +29,7 @@ export class BookingComponent implements OnInit {
   isSubmitting = signal(false);
   isSuccess = signal(false);
   bookingId = signal('');
+  stepAttempted = signal(false);
 
   selectedService = signal<ServiceOffering | null>(null);
   selectedDate = signal('');
@@ -36,8 +37,65 @@ export class BookingComponent implements OnInit {
 
   clientName = '';
   clientPhone = '';
+  clientPhoneCode = '+44';
   clientEmail = '';
+  clientLocation = '';
   notes = '';
+
+  readonly phoneCodes = [
+    { code: '+1',   country: 'United States / Canada' },
+    { code: '+7',   country: 'Russia / Kazakhstan' },
+    { code: '+20',  country: 'Egypt' },
+    { code: '+27',  country: 'South Africa' },
+    { code: '+33',  country: 'France' },
+    { code: '+34',  country: 'Spain' },
+    { code: '+39',  country: 'Italy' },
+    { code: '+44',  country: 'United Kingdom' },
+    { code: '+46',  country: 'Sweden' },
+    { code: '+47',  country: 'Norway' },
+    { code: '+49',  country: 'Germany' },
+    { code: '+52',  country: 'Mexico' },
+    { code: '+55',  country: 'Brazil' },
+    { code: '+61',  country: 'Australia' },
+    { code: '+63',  country: 'Philippines' },
+    { code: '+64',  country: 'New Zealand' },
+    { code: '+65',  country: 'Singapore' },
+    { code: '+81',  country: 'Japan' },
+    { code: '+82',  country: 'South Korea' },
+    { code: '+86',  country: 'China' },
+    { code: '+91',  country: 'India' },
+    { code: '+212', country: 'Morocco' },
+    { code: '+213', country: 'Algeria' },
+    { code: '+216', country: 'Tunisia' },
+    { code: '+220', country: 'Gambia' },
+    { code: '+221', country: 'Senegal' },
+    { code: '+224', country: 'Guinea' },
+    { code: '+225', country: 'Ivory Coast' },
+    { code: '+229', country: 'Benin' },
+    { code: '+231', country: 'Liberia' },
+    { code: '+232', country: 'Sierra Leone' },
+    { code: '+233', country: 'Ghana' },
+    { code: '+234', country: 'Nigeria' },
+    { code: '+237', country: 'Cameroon' },
+    { code: '+241', country: 'Gabon' },
+    { code: '+243', country: 'DR Congo' },
+    { code: '+244', country: 'Angola' },
+    { code: '+249', country: 'Sudan' },
+    { code: '+250', country: 'Rwanda' },
+    { code: '+251', country: 'Ethiopia' },
+    { code: '+254', country: 'Kenya' },
+    { code: '+255', country: 'Tanzania' },
+    { code: '+256', country: 'Uganda' },
+    { code: '+260', country: 'Zambia' },
+    { code: '+263', country: 'Zimbabwe' },
+    { code: '+264', country: 'Namibia' },
+    { code: '+267', country: 'Botswana' },
+    { code: '+353', country: 'Ireland' },
+    { code: '+351', country: 'Portugal' },
+    { code: '+420', country: 'Czech Republic' },
+    { code: '+971', country: 'UAE' },
+    { code: '+972', country: 'Israel' },
+  ];
 
   availableTimeSlots = signal<string[]>([]);
 
@@ -64,7 +122,6 @@ export class BookingComponent implements OnInit {
 
   private fmtTime(t: string): string {
     if (!t) return '';
-    // Handle "2000-01-01 09:00:00 +0100" → "09:00"
     const match = t.match(/\b(\d{2}:\d{2})\b/g);
     if (match) return match[match.length > 1 ? 1 : 0];
     return t.slice(0, 5);
@@ -86,7 +143,17 @@ export class BookingComponent implements OnInit {
     if (user) {
       this.clientName = user.displayName;
       this.clientEmail = user.email;
-      this.clientPhone = user.phone;
+      // Parse country code out of stored phone
+      const rawPhone = user.phone || '';
+      const matched = [...this.phoneCodes]
+        .sort((a, b) => b.code.length - a.code.length)
+        .find(p => rawPhone.startsWith(p.code));
+      if (matched) {
+        this.clientPhoneCode = matched.code;
+        this.clientPhone = rawPhone.slice(matched.code.length).trim();
+      } else {
+        this.clientPhone = rawPhone;
+      }
     }
   }
 
@@ -106,14 +173,13 @@ export class BookingComponent implements OnInit {
     const avail = (p as any).availability ?? {};
     const slot  = avail[day];
 
-    // If no availability data at all for this provider, fall back to open hours
     const open  = slot?.open  || '09:00';
     const close = slot?.close || '18:00';
     const isOpen = slot ? (slot.available === true || slot.available === 1) : true;
 
     if (isOpen && open && close) {
       this.availableTimeSlots.set(
-        this.bookingService.generateTimeSlots(open, close, svc.duration)
+        this.bookingService.generateTimeSlots(open, close, svc.duration || 60)
       );
     } else {
       this.availableTimeSlots.set([]);
@@ -135,7 +201,17 @@ export class BookingComponent implements OnInit {
 
   goToStep(step: number) {
     if (step > this.currentStep() + 1) return;
+    this.stepAttempted.set(false);
     this.currentStep.set(step as Step);
+  }
+
+  tryNextStep() {
+    if (this.canProceed()) {
+      this.stepAttempted.set(false);
+      this.nextStep();
+    } else {
+      this.stepAttempted.set(true);
+    }
   }
 
   nextStep() {
@@ -145,14 +221,17 @@ export class BookingComponent implements OnInit {
 
   prevStep() {
     const s = this.currentStep();
-    if (s > 1) this.currentStep.set((s - 1) as Step);
+    if (s > 1) {
+      this.stepAttempted.set(false);
+      this.currentStep.set((s - 1) as Step);
+    }
   }
 
   canProceed(): boolean {
     switch (this.currentStep()) {
       case 1: return !!this.selectedService();
       case 2: return !!this.selectedDate() && !!this.selectedTime();
-      case 3: return !!this.clientName && !!this.clientEmail;
+      case 3: return !!this.clientName && !!this.clientEmail && !!this.clientPhone.trim() && !!this.clientLocation.trim();
       default: return true;
     }
   }
@@ -170,6 +249,8 @@ export class BookingComponent implements OnInit {
         date: this.selectedDate(),
         time: this.selectedTime(),
         notes: this.notes,
+        clientPhone: `${this.clientPhoneCode}${this.clientPhone.trim()}`,
+        clientLocation: this.clientLocation,
       });
       this.bookingId.set(id);
       this.isSuccess.set(true);
