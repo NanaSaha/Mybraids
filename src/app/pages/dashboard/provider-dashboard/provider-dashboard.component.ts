@@ -14,7 +14,6 @@ interface ProviderService {
   id: string;
   name: string;
   description: string;
-  duration: number;
   price: number;
   currency: string;
 }
@@ -52,6 +51,9 @@ export class ProviderDashboardComponent implements OnInit {
   // Master service type list (from admin)
   serviceTypeOptions = signal<{ id: string; name: string; category: string }[]>([]);
 
+  // Gallery lightbox
+  lightboxIndex = signal<number | null>(null);
+
   // Services & Pricing
   services        = signal<ProviderService[]>([]);
   showServiceForm = signal(false);
@@ -61,12 +63,65 @@ export class ProviderDashboardComponent implements OnInit {
   serviceForm = {
     name:        '',
     description: '',
-    duration:    60,
     price:       0,
     currency:    'USD',
   };
   readonly currencies = ['USD', 'GBP', 'EUR', 'GHS', 'NGN', 'CAD', 'AUD'];
-  readonly durations  = [15, 30, 45, 60, 75, 90, 120, 150, 180, 240];
+
+  readonly phoneCodes = [
+    { code: '+1',   country: 'United States / Canada' },
+    { code: '+7',   country: 'Russia / Kazakhstan' },
+    { code: '+20',  country: 'Egypt' },
+    { code: '+27',  country: 'South Africa' },
+    { code: '+33',  country: 'France' },
+    { code: '+34',  country: 'Spain' },
+    { code: '+39',  country: 'Italy' },
+    { code: '+44',  country: 'United Kingdom' },
+    { code: '+46',  country: 'Sweden' },
+    { code: '+47',  country: 'Norway' },
+    { code: '+49',  country: 'Germany' },
+    { code: '+52',  country: 'Mexico' },
+    { code: '+55',  country: 'Brazil' },
+    { code: '+61',  country: 'Australia' },
+    { code: '+63',  country: 'Philippines' },
+    { code: '+64',  country: 'New Zealand' },
+    { code: '+65',  country: 'Singapore' },
+    { code: '+81',  country: 'Japan' },
+    { code: '+82',  country: 'South Korea' },
+    { code: '+86',  country: 'China' },
+    { code: '+91',  country: 'India' },
+    { code: '+212', country: 'Morocco' },
+    { code: '+213', country: 'Algeria' },
+    { code: '+216', country: 'Tunisia' },
+    { code: '+220', country: 'Gambia' },
+    { code: '+221', country: 'Senegal' },
+    { code: '+224', country: 'Guinea' },
+    { code: '+225', country: 'Ivory Coast' },
+    { code: '+229', country: 'Benin' },
+    { code: '+231', country: 'Liberia' },
+    { code: '+232', country: 'Sierra Leone' },
+    { code: '+233', country: 'Ghana' },
+    { code: '+234', country: 'Nigeria' },
+    { code: '+237', country: 'Cameroon' },
+    { code: '+241', country: 'Gabon' },
+    { code: '+243', country: 'DR Congo' },
+    { code: '+244', country: 'Angola' },
+    { code: '+249', country: 'Sudan' },
+    { code: '+250', country: 'Rwanda' },
+    { code: '+251', country: 'Ethiopia' },
+    { code: '+254', country: 'Kenya' },
+    { code: '+255', country: 'Tanzania' },
+    { code: '+256', country: 'Uganda' },
+    { code: '+260', country: 'Zambia' },
+    { code: '+263', country: 'Zimbabwe' },
+    { code: '+264', country: 'Namibia' },
+    { code: '+267', country: 'Botswana' },
+    { code: '+353', country: 'Ireland' },
+    { code: '+351', country: 'Portugal' },
+    { code: '+420', country: 'Czech Republic' },
+    { code: '+971', country: 'UAE' },
+    { code: '+972', country: 'Israel' },
+  ];
 
   stats = [
     { label: 'Total Bookings', value: '—', icon: 'fa-calendar-check', color: 'primary' },
@@ -79,11 +134,12 @@ export class ProviderDashboardComponent implements OnInit {
     bio:              '',
     tagline:          '',
     category:         'hair',
-    instagram:        '',
     city:             '',
     state:            '',
     country:          '',
+    postcode:         '',
     address:          '',
+    phoneCode:        '+1',
     phone:            '',
     years_experience: 0,
   };
@@ -123,13 +179,23 @@ export class ProviderDashboardComponent implements OnInit {
       this.profileForm.bio              = provider.bio || '';
       this.profileForm.tagline          = provider.tagline || '';
       this.profileForm.category         = provider.category || 'hair';
-      this.profileForm.instagram        = provider.instagram || '';
       this.profileForm.city             = provider.location?.city || '';
       this.profileForm.state            = provider.location?.state || '';
       this.profileForm.country          = provider.location?.country || '';
+      this.profileForm.postcode         = provider.location?.postcode || '';
       this.profileForm.address          = provider.location?.address || '';
-      this.profileForm.phone            = provider.phone || '';
       this.profileForm.years_experience = provider.yearsExperience || 0;
+      // Split stored phone into dial code + local number
+      const rawPhone = provider.phone || '';
+      const matched = [...this.phoneCodes]
+        .sort((a, b) => b.code.length - a.code.length)
+        .find(p => rawPhone.startsWith(p.code));
+      if (matched) {
+        this.profileForm.phoneCode = matched.code;
+        this.profileForm.phone     = rawPhone.slice(matched.code.length).trim();
+      } else {
+        this.profileForm.phone = rawPhone;
+      }
       this.galleryImages.set(provider.galleryImages?.filter((u: string) => u) || []);
       if (provider.profileImage) this.profileImage.set(provider.profileImage);
       // Services come from the same /providers/me response — no separate GET needed
@@ -232,14 +298,23 @@ export class ProviderDashboardComponent implements OnInit {
     this.isSaving.set(true);
     this.saveSuccess.set(false);
     try {
-      // Save provider profile fields
+      const fullPhone = this.profileForm.phone.trim()
+        ? `${this.profileForm.phoneCode}${this.profileForm.phone.trim()}`
+        : '';
       await firstValueFrom(this.api.put('/providers/me', {
-        ...this.profileForm,
-        availability: this.availability,
+        bio:              this.profileForm.bio,
+        tagline:          this.profileForm.tagline,
+        category:         this.profileForm.category,
+        city:             this.profileForm.city,
+        state:            this.profileForm.state,
+        country:          this.profileForm.country,
+        postcode:         this.profileForm.postcode,
+        address:          this.profileForm.address,
+        years_experience: this.profileForm.years_experience,
+        availability:     this.availability,
       }));
-      // Save phone separately via auth endpoint (phone lives on users table)
-      if (this.profileForm.phone.trim()) {
-        await firstValueFrom(this.api.put('/auth/profile', { phone: this.profileForm.phone.trim() }));
+      if (fullPhone) {
+        await firstValueFrom(this.api.put('/auth/profile', { phone: fullPhone }));
       }
       this.saveSuccess.set(true);
       setTimeout(() => this.saveSuccess.set(false), 3000);
@@ -297,14 +372,14 @@ export class ProviderDashboardComponent implements OnInit {
 
   openAddService() {
     this.editingServiceId.set(null);
-    this.serviceForm = { name: '', description: '', duration: 60, price: 0, currency: 'USD' };
+    this.serviceForm = { name: '', description: '', price: 0, currency: 'USD' };
     this.serviceError.set('');
     this.showServiceForm.set(true);
   }
 
   openEditService(s: ProviderService) {
     this.editingServiceId.set(s.id);
-    this.serviceForm = { name: s.name, description: s.description, duration: s.duration, price: s.price, currency: s.currency };
+    this.serviceForm = { name: s.name, description: s.description, price: s.price, currency: s.currency };
     this.serviceError.set('');
     this.showServiceForm.set(true);
   }
@@ -345,9 +420,17 @@ export class ProviderDashboardComponent implements OnInit {
     } catch { /* ignore */ }
   }
 
-  formatDuration(min: number): string {
-    if (min < 60) return `${min} min`;
-    const h = Math.floor(min / 60), m = min % 60;
-    return m ? `${h}h ${m}min` : `${h}h`;
+  // ── Gallery lightbox ──────────────────────────────────────────────────────
+  openLightbox(i: number)  { this.lightboxIndex.set(i); }
+  closeLightbox()          { this.lightboxIndex.set(null); }
+  prevImage() {
+    const i = this.lightboxIndex();
+    if (i === null) return;
+    this.lightboxIndex.set(i > 0 ? i - 1 : this.galleryImages().length - 1);
+  }
+  nextImage() {
+    const i = this.lightboxIndex();
+    if (i === null) return;
+    this.lightboxIndex.set(i < this.galleryImages().length - 1 ? i + 1 : 0);
   }
 }

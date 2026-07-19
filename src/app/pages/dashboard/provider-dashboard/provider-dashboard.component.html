@@ -258,15 +258,6 @@
                 <textarea [(ngModel)]="serviceForm.description" rows="3" placeholder="What's included? Any important notes for clients?" class="form-control"></textarea>
               </div>
 
-              <div class="form-group">
-                <label>Duration</label>
-                <select [(ngModel)]="serviceForm.duration" class="form-control">
-                  @for (d of durations; track d) {
-                    <option [value]="d">{{ formatDuration(d) }}</option>
-                  }
-                </select>
-              </div>
-
               <div class="form-group price-row">
                 <label>Price <span class="required">*</span></label>
                 <div class="price-input-wrap">
@@ -315,9 +306,6 @@
                   @if (s.description) {
                     <p class="service-row-desc">{{ s.description }}</p>
                   }
-                  <div class="service-row-meta">
-                    <span class="meta-pill"><i class="fas fa-clock"></i> {{ formatDuration(s.duration) }}</span>
-                  </div>
                 </div>
                 <div class="service-row-right">
                   <span class="service-price">{{ s.currency }} {{ s.price | number:'1.2-2' }}</span>
@@ -348,14 +336,24 @@
           </label>
           <input id="gallery-upload" type="file" accept="image/*" class="hidden" (change)="onFileSelect($event)">
         </div>
+
+        <!-- Upload progress bar -->
+        @if (isUploading()) {
+          <div class="upload-progress-wrap">
+            <div class="upload-progress-bar"></div>
+            <span class="upload-progress-label"><i class="fas fa-spinner fa-spin"></i> Uploading image…</span>
+          </div>
+        }
+
         @if (uploadError()) {
           <div class="form-error-banner mb-4"><i class="fas fa-exclamation-circle"></i> {{ uploadError() }}</div>
         }
         <div class="gallery-upload-grid">
           @for (img of galleryImages(); track img; let i = $index) {
-            <div class="gallery-img-wrap">
+            <div class="gallery-img-wrap" (click)="openLightbox(i)">
               <img [src]="img" alt="Portfolio image">
-              <button class="remove-img-btn" (click)="removeGalleryImage(i)">
+              <div class="gallery-img-overlay"><i class="fas fa-expand"></i></div>
+              <button class="remove-img-btn" (click)="$event.stopPropagation(); removeGalleryImage(i)">
                 <i class="fas fa-times"></i>
               </button>
             </div>
@@ -370,14 +368,28 @@
             </div>
           }
         </div>
-        @if (uploadError()) {
-          <p class="upload-error">{{ uploadError() }}</p>
-        }
         @if (galleryImages().length > 0) {
           <button class="btn btn-primary" (click)="saveSettings()" [disabled]="isSaving()">
             @if (isSaving()) { <div class="spinner"></div> Saving... }
             @else { <i class="fas fa-save"></i> Save Gallery }
           </button>
+        }
+
+        <!-- Lightbox -->
+        @if (lightboxIndex() !== null) {
+          <div class="lightbox-overlay" (click)="closeLightbox()">
+            <button class="lightbox-close" (click)="closeLightbox()"><i class="fas fa-times"></i></button>
+            <button class="lightbox-nav lightbox-prev" (click)="$event.stopPropagation(); prevImage()">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="lightbox-img-wrap" (click)="$event.stopPropagation()">
+              <img [src]="galleryImages()[lightboxIndex()!]" alt="Portfolio image">
+            </div>
+            <button class="lightbox-nav lightbox-next" (click)="$event.stopPropagation(); nextImage()">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="lightbox-counter">{{ lightboxIndex()! + 1 }} / {{ galleryImages().length }}</div>
+          </div>
         }
     </div>
     }
@@ -463,8 +475,8 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Phone Number <span class="label-required">Required</span></label>
-              <input type="tel" class="form-control" [(ngModel)]="profileForm.phone" placeholder="+1 555 000 0000">
+              <label>Postcode</label>
+              <input type="text" class="form-control" [(ngModel)]="profileForm.postcode" placeholder="e.g. SW1A 1AA">
             </div>
             <div class="form-group">
               <label>Full Address <span class="label-required">Shown to clients after booking</span></label>
@@ -472,8 +484,15 @@
                      placeholder="e.g. 12 Market Street, Accra, Ghana">
             </div>
             <div class="form-group">
-              <label>Instagram Handle</label>
-              <input type="text" class="form-control" [(ngModel)]="profileForm.instagram" placeholder="@youraccount">
+              <label>Phone Number <span class="label-required">Required</span></label>
+              <div class="phone-input-row">
+                <select class="form-control phone-code-select" [(ngModel)]="profileForm.phoneCode">
+                  @for (p of phoneCodes; track p.code) {
+                    <option [value]="p.code">{{ p.code }} {{ p.country }}</option>
+                  }
+                </select>
+                <input type="tel" class="form-control phone-local-input" [(ngModel)]="profileForm.phone" placeholder="7911 123456">
+              </div>
             </div>
           </div>
 
