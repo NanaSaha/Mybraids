@@ -35,10 +35,8 @@ export class ProviderDashboardComponent implements OnInit {
   activeTab   = signal<'overview' | 'bookings' | 'services' | 'gallery' | 'settings'>('overview');
   isLoading   = signal(true);
 
-  // Unique ENUM category values from admin-managed service types
-  categoryOptions = computed(() =>
-    [...new Set(this.serviceTypeOptions().map(s => s.category))].filter(Boolean)
-  );
+  // Fixed ENUM categories — match the providers.category column in DB
+  readonly categoryOptions = ['hair', 'makeup', 'eyelashes', 'nails', 'skincare', 'other'];
   isSaving         = signal(false);
   saveSuccess      = signal(false);
   uploadError      = signal('');
@@ -311,7 +309,7 @@ export class ProviderDashboardComponent implements OnInit {
     const missing: string[] = [];
     if (!f.bio.trim())                                      missing.push('Bio');
     if (!f.tagline.trim())                                  missing.push('Tagline');
-    if (!f.category && this.categoryOptions().length > 0)   missing.push('Service Category');
+    if (!f.category)                                         missing.push('Service Category');
     if (!f.city.trim())                                     missing.push('City');
     if (!f.country.trim())                                  missing.push('Country');
     if (!f.postcode.trim())                                 missing.push('Postcode');
