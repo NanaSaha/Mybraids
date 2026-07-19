@@ -61,6 +61,7 @@ export class ProviderDashboardComponent implements OnInit {
   editingServiceId = signal<string | null>(null);
   serviceSaving   = signal(false);
   serviceError    = signal('');
+  customServiceName = '';
   serviceForm = {
     name:        '',
     description: '',
@@ -407,6 +408,7 @@ export class ProviderDashboardComponent implements OnInit {
   openAddService() {
     this.editingServiceId.set(null);
     this.serviceForm = { name: '', description: '', price: 0, currency: 'USD' };
+    this.customServiceName = '';
     this.serviceError.set('');
     this.showServiceForm.set(true);
   }
@@ -414,6 +416,7 @@ export class ProviderDashboardComponent implements OnInit {
   openEditService(s: ProviderService) {
     this.editingServiceId.set(s.id);
     this.serviceForm = { name: s.name, description: s.description, price: s.price, currency: s.currency };
+    this.customServiceName = '';
     this.serviceError.set('');
     this.showServiceForm.set(true);
   }
@@ -421,24 +424,32 @@ export class ProviderDashboardComponent implements OnInit {
   cancelServiceForm() {
     this.showServiceForm.set(false);
     this.editingServiceId.set(null);
+    this.customServiceName = '';
   }
 
   async saveService() {
-    if (!this.serviceForm.name.trim()) { this.serviceError.set('Service name is required.'); return; }
-    if (this.serviceForm.price <= 0)   { this.serviceError.set('Price must be greater than 0.'); return; }
+    const isOther = this.serviceForm.name.toLowerCase() === 'other';
+    const finalName = isOther ? this.customServiceName.trim() : this.serviceForm.name.trim();
+    if (!finalName) {
+      this.serviceError.set(isOther ? 'Please enter your service name.' : 'Service name is required.');
+      return;
+    }
+    if (this.serviceForm.price <= 0) { this.serviceError.set('Price must be greater than 0.'); return; }
     this.serviceSaving.set(true);
     this.serviceError.set('');
+    const payload = { ...this.serviceForm, name: finalName };
     try {
       const id = this.editingServiceId();
       if (id) {
-        await firstValueFrom(this.api.put(`/providers/me/services/${id}`, this.serviceForm));
-        this.services.update(list => list.map(s => s.id === id ? { ...s, ...this.serviceForm } : s));
+        await firstValueFrom(this.api.put(`/providers/me/services/${id}`, payload));
+        this.services.update(list => list.map(s => s.id === id ? { ...s, ...payload } : s));
       } else {
-        const res: any = await firstValueFrom(this.api.post('/providers/me/services', this.serviceForm));
-        this.services.update(list => [...list, { id: res.id, ...this.serviceForm }]);
+        const res: any = await firstValueFrom(this.api.post('/providers/me/services', payload));
+        this.services.update(list => [...list, { id: res.id, ...payload }]);
       }
       this.showServiceForm.set(false);
       this.editingServiceId.set(null);
+      this.customServiceName = '';
     } catch (e: any) {
       this.serviceError.set(e?.error?.error || 'Could not save service. Try again.');
     } finally {

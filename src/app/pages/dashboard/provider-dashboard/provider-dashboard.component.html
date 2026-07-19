@@ -242,12 +242,17 @@
               <div class="form-group form-full">
                 <label>Service Name <span class="required">*</span></label>
                 @if (serviceTypeOptions().length > 0) {
-                  <select [(ngModel)]="serviceForm.name" class="form-control">
+                  <select [(ngModel)]="serviceForm.name" class="form-control" (ngModelChange)="customServiceName = ''">
                     <option value="">— Select a service —</option>
                     @for (opt of serviceTypeOptions(); track opt.id) {
                       <option [value]="opt.name">{{ opt.name }}</option>
                     }
+                    <option value="Other">Other</option>
                   </select>
+                  @if (serviceForm.name.toLowerCase() === 'other') {
+                    <input type="text" [(ngModel)]="customServiceName" placeholder="Enter your service name…"
+                      class="form-control" style="margin-top:8px" name="customServiceName">
+                  }
                 } @else {
                   <input type="text" [(ngModel)]="serviceForm.name" placeholder="e.g. Box Braids, Full Face Makeup…" class="form-control">
                 }
