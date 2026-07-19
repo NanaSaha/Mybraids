@@ -953,7 +953,13 @@
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-full  { grid-column: 1 / -1; }
 .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
-.required { color: var(--primary); }
+.required { color: #C62828; font-weight: 700; }
+
+.field-invalid {
+  border-color: #C62828 !important;
+  background: #fff5f5 !important;
+  &:focus { box-shadow: 0 0 0 3px rgba(198,40,40,0.15) !important; }
+}
 
 .price-row .price-input-wrap {
   display: flex;

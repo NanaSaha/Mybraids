@@ -37,9 +37,10 @@ export class ProviderDashboardComponent implements OnInit {
 
   // Specialty options pulled from the admin-managed service types list
   categoryOptions = computed(() => this.serviceTypeOptions().map(s => s.name));
-  isSaving    = signal(false);
-  saveSuccess = signal(false);
-  uploadError = signal('');
+  isSaving         = signal(false);
+  saveSuccess      = signal(false);
+  uploadError      = signal('');
+  profileSubmitted = signal(false);
   isUploading = signal(false);
 
   galleryImages  = signal<string[]>([]);
@@ -295,6 +296,22 @@ export class ProviderDashboardComponent implements OnInit {
   }
 
   async saveSettings() {
+    this.profileSubmitted.set(true);
+    const f = this.profileForm;
+    const missing: string[] = [];
+    if (!f.bio.trim())                                      missing.push('Bio');
+    if (!f.tagline.trim())                                  missing.push('Tagline');
+    if (!f.category && this.categoryOptions().length > 0)   missing.push('Service Category');
+    if (!f.city.trim())                                     missing.push('City');
+    if (!f.country.trim())                                  missing.push('Country');
+    if (!f.postcode.trim())                                 missing.push('Postcode');
+    if (!f.address.trim())                                  missing.push('Full Address');
+    if (!f.phone.trim())                                    missing.push('Phone Number');
+    if (missing.length > 0) {
+      this.uploadError.set(`Please complete all required fields: ${missing.join(', ')}`);
+      return;
+    }
+    this.uploadError.set('');
     this.isSaving.set(true);
     this.saveSuccess.set(false);
     try {

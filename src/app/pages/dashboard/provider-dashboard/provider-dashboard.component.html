@@ -429,16 +429,19 @@
           <div class="settings-card">
             <h3>Profile Information</h3>
             <div class="form-group">
-              <label>Bio</label>
-              <textarea class="form-control" [(ngModel)]="profileForm.bio" rows="4"></textarea>
+              <label>Bio <span class="required">*</span></label>
+              <textarea class="form-control" [(ngModel)]="profileForm.bio" rows="4"
+                [class.field-invalid]="profileSubmitted() && !profileForm.bio.trim()"></textarea>
             </div>
             <div class="form-group">
-              <label>Tagline</label>
-              <input type="text" class="form-control" [(ngModel)]="profileForm.tagline">
+              <label>Tagline <span class="required">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="profileForm.tagline"
+                [class.field-invalid]="profileSubmitted() && !profileForm.tagline.trim()">
             </div>
             <div class="form-group">
-              <label>Service Category</label>
-              <select class="form-control" [(ngModel)]="profileForm.category">
+              <label>Service Category <span class="required">*</span></label>
+              <select class="form-control" [(ngModel)]="profileForm.category"
+                [class.field-invalid]="profileSubmitted() && !profileForm.category && categoryOptions().length > 0">
                 @if (categoryOptions().length === 0) {
                   <option value="">No services set up by admin yet</option>
                 }
@@ -449,8 +452,9 @@
             </div>
             <div class="form-row-2">
               <div class="form-group">
-                <label>City <span class="label-required">Required for search</span></label>
-                <div class="form-control form-control-ac" [class.input-missing]="!profileForm.city">
+                <label>City <span class="required">*</span></label>
+                <div class="form-control form-control-ac"
+                  [class.field-invalid]="profileSubmitted() && !profileForm.city">
                   <app-location-autocomplete
                     mode="city"
                     placeholder="e.g. Lagos"
@@ -462,8 +466,9 @@
                 </div>
               </div>
               <div class="form-group">
-                <label>Country <span class="label-required">Required for search</span></label>
-                <div class="form-control form-control-ac" [class.input-missing]="!profileForm.country">
+                <label>Country <span class="required">*</span></label>
+                <div class="form-control form-control-ac"
+                  [class.field-invalid]="profileSubmitted() && !profileForm.country">
                   <app-location-autocomplete
                     mode="country"
                     placeholder="e.g. Nigeria"
@@ -475,23 +480,26 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Postcode</label>
-              <input type="text" class="form-control" [(ngModel)]="profileForm.postcode" placeholder="e.g. SW1A 1AA">
+              <label>Postcode <span class="required">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="profileForm.postcode" placeholder="e.g. SW1A 1AA"
+                [class.field-invalid]="profileSubmitted() && !profileForm.postcode.trim()">
             </div>
             <div class="form-group">
-              <label>Full Address <span class="label-required">Shown to clients after booking</span></label>
+              <label>Full Address <span class="required">*</span></label>
               <input type="text" class="form-control" [(ngModel)]="profileForm.address"
-                     placeholder="e.g. 12 Market Street, Accra, Ghana">
+                     placeholder="e.g. 12 Market Street, Accra, Ghana"
+                [class.field-invalid]="profileSubmitted() && !profileForm.address.trim()">
             </div>
             <div class="form-group">
-              <label>Phone Number <span class="label-required">Required</span></label>
+              <label>Phone Number <span class="required">*</span></label>
               <div class="phone-input-row">
                 <select class="form-control phone-code-select" [(ngModel)]="profileForm.phoneCode">
                   @for (p of phoneCodes; track p.code) {
                     <option [value]="p.code">{{ p.code }} {{ p.country }}</option>
                   }
                 </select>
-                <input type="tel" class="form-control phone-local-input" [(ngModel)]="profileForm.phone" placeholder="7911 123456">
+                <input type="tel" class="form-control phone-local-input" [(ngModel)]="profileForm.phone" placeholder="7911 123456"
+                  [class.field-invalid]="profileSubmitted() && !profileForm.phone.trim()">
               </div>
             </div>
           </div>
