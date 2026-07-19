@@ -111,27 +111,6 @@
   </div>
 </section>
 
-<!-- ========== CATEGORIES ========== -->
-<section class="categories-section">
-  <div class="container">
-    <div class="categories-header">
-      <h2>Explore by Service</h2>
-      <a routerLink="/search" class="btn btn-ghost btn-sm">View all <i class="fas fa-arrow-right"></i></a>
-    </div>
-    <div class="categories-grid">
-      @for (cat of categories; track cat.value) {
-        <a class="category-card" [routerLink]="['/search']" [queryParams]="{category: cat.value}">
-          <div class="category-icon" [style.background]="cat.color + '18'" [style.color]="cat.color">
-            <i class="fas {{ cat.icon }}"></i>
-          </div>
-          <span class="category-label">{{ cat.label }}</span>
-          <i class="fas fa-arrow-right category-arrow"></i>
-        </a>
-      }
-    </div>
-  </div>
-</section>
-
 <!-- ========== FEATURED PROVIDERS ========== -->
 <section class="section featured-section">
   <div class="container">
@@ -170,82 +149,6 @@
     }
   </div>
 </section> -->
-
-<!-- ========== BROWSE BY LOCATION ========== -->
-<section class="section locations-section">
-  <div class="container">
-    <div class="section-header">
-      <p class="section-label">Global reach</p>
-      <h2>Find Artists in Your City</h2>
-      <p>Our talented artists are everywhere you are. Pick a city and the service you need.</p>
-    </div>
-
-    <!-- Country filter tabs -->
-    @if (!locationsLoading()) {
-      <div class="country-tabs">
-        @for (c of countries(); track c) {
-          <button class="country-tab" [class.active]="selectedCountry() === c"
-                  (click)="selectedCountry.set(c)">
-            {{ c }}
-          </button>
-        }
-      </div>
-    }
-
-    <!-- City cards -->
-    @if (locationsLoading()) {
-      <div class="loc-skeleton-grid">
-        @for (_ of [1,2,3,4,5,6]; track $index) {
-          <div class="loc-skeleton"></div>
-        }
-      </div>
-    } @else {
-      <div class="locations-grid">
-        @for (loc of filteredLocations(); track loc.city + loc.country) {
-          <div class="location-card">
-            <div class="loc-card-top" (click)="searchByCity(loc.city)">
-              <div class="location-icon">
-                <i class="fas fa-location-dot"></i>
-              </div>
-              <div class="location-info">
-                <p class="location-city">{{ loc.city }}</p>
-                <p class="location-country">{{ loc.country }}</p>
-              </div>
-              @if (loc.count > 0) {
-                <div class="location-count">{{ loc.count }} artist{{ loc.count === 1 ? '' : 's' }}</div>
-              }
-            </div>
-
-            <!-- Service shortcuts -->
-            @if (loc.categories.length > 0) {
-              <div class="loc-services">
-                @for (cat of loc.categories.slice(0, 4); track cat) {
-                  <button class="loc-service-chip" (click)="searchByCity(loc.city, cat)">
-                    {{ categoryLabel(cat) }}
-                  </button>
-                }
-              </div>
-            } @else {
-              <div class="loc-services">
-                @for (cat of ['hair','makeup','eyelashes','nails']; track cat) {
-                  <button class="loc-service-chip" (click)="searchByCity(loc.city, cat)">
-                    {{ categoryLabel(cat) }}
-                  </button>
-                }
-              </div>
-            }
-          </div>
-        }
-      </div>
-    }
-
-    <div class="text-center" style="margin-top: 32px">
-      <a routerLink="/search" class="btn btn-outline btn-lg">
-        Search All Cities <i class="fas fa-arrow-right"></i>
-      </a>
-    </div>
-  </div>
-</section>
 
 <!-- ========== TESTIMONIALS ========== -->
 <!-- <section class="section testimonials-section">
