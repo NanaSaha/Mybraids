@@ -471,8 +471,11 @@
               <select class="form-control" [(ngModel)]="profileForm.category"
                 [class.field-invalid]="profileSubmitted() && !profileForm.category">
                 <option value="">— Select your specialty —</option>
-                @for (cat of categoryOptions; track cat) {
-                  <option [value]="cat">{{ formatCategory(cat) }}</option>
+                @if (categoryOptions().length === 0) {
+                  <option disabled>No services set up by admin yet</option>
+                }
+                @for (name of categoryOptions(); track name) {
+                  <option [value]="name">{{ name }}</option>
                 }
               </select>
             </div>

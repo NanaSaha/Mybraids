@@ -32,6 +32,7 @@ DB.loggers << Logger.new($stdout) if ENV['RACK_ENV'] == 'development'
   "ALTER TABLE providers ADD COLUMN company_name  VARCHAR(255) NULL",
   "ALTER TABLE providers ADD COLUMN tax_id        VARCHAR(100) NULL",
   "ALTER TABLE providers ADD COLUMN date_of_birth DATE NULL",
+  "ALTER TABLE providers MODIFY COLUMN category VARCHAR(100) NOT NULL DEFAULT ''",
 ].each do |sql|
   begin
     DB.run(sql)

@@ -35,8 +35,8 @@ export class ProviderDashboardComponent implements OnInit {
   activeTab   = signal<'overview' | 'bookings' | 'services' | 'gallery' | 'settings'>('overview');
   isLoading   = signal(true);
 
-  // Fixed ENUM categories — match the providers.category column in DB
-  readonly categoryOptions = ['hair', 'makeup', 'eyelashes', 'nails', 'skincare', 'other'];
+  // Service type names from admin — drive the Service Category dropdown
+  categoryOptions = computed(() => this.serviceTypeOptions().map(s => s.name));
   isSaving         = signal(false);
   saveSuccess      = signal(false);
   uploadError      = signal('');
@@ -134,7 +134,7 @@ export class ProviderDashboardComponent implements OnInit {
   profileForm = {
     bio:              '',
     tagline:          '',
-    category:         'hair',
+    category:         '',
     city:             '',
     state:            '',
     country:          '',

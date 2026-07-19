@@ -29,7 +29,7 @@ module Routes
             phone:           user[:phone]        || row[:phone]        || '',
             bio:             row[:bio] || '',
             tagline:         row[:tagline] || '',
-            category:        row[:category] || 'hair',
+            category:        row[:category] || '',
             profileImage:    row[:profile_image] || '',
             rating:          row[:rating].to_f,
             reviewCount:     row[:review_count].to_i,
@@ -237,7 +237,6 @@ module Routes
         pid = DB[:providers].where(user_id: @current_user['id']).get(:id)
         halt 404, { error: 'Provider profile not found' }.to_json unless pid
 
-        valid_categories = %w[hair makeup eyelashes nails skincare other]
         to_camel = ->(s) { s.gsub(/_([a-z])/) { $1.upcase } }
 
         provider_fields = {}
@@ -248,9 +247,9 @@ module Routes
           provider_fields[key] = body[f]         if body.key?(f)
         end
 
-        # category: only update if it's a valid ENUM value
+        # category: accept any non-empty service type name
         cat_val = body['category'].to_s.strip
-        provider_fields[:category] = cat_val if valid_categories.include?(cat_val)
+        provider_fields[:category] = cat_val unless cat_val.empty?
 
         # account_type: only valid ENUM values
         acct_type = body['accountType'].to_s.strip
