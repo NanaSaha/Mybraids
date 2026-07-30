@@ -6,7 +6,7 @@ import { Provider, Review, ServiceCategory } from '../models/provider.model';
 
 export interface SearchFilters {
   location?: string;
-  category?: ServiceCategory | '';
+  category?: string;
   minRating?: number;
   maxPrice?: number;
   sortBy?: 'rating' | 'price_asc' | 'price_desc' | 'newest';

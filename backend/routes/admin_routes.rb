@@ -230,7 +230,7 @@ module Routes
             providerName: r[:provider_name], serviceName: r[:service_name],
             servicePrice: r[:service_price].to_f, currency: r[:currency],
             date: r[:booking_date].to_s, time: r[:booking_time].to_s,
-            status: r[:status], notes: r[:notes],
+            status: r[:status], notes: r[:notes], providerNote: r[:provider_note] || '',
             createdAt: r[:created_at] }
         }.to_json
       end

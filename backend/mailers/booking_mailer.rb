@@ -469,6 +469,68 @@ module BookingMailer
     ''
   end
 
+  # Called when a provider posts a reply note to a client's booking note.
+  def self.send_provider_note_notification(booking:)
+    Thread.new do
+      begin
+        client        = DB[:users].where(id: booking[:client_id]).first
+        prow          = DB[:providers].where(id: booking[:provider_id]).first
+        provider_user = DB[:users].where(id: prow&.dig(:user_id)).first if prow
+
+        client_name    = client&.dig(:display_name)        || 'Client'
+        client_email   = client&.dig(:email)               || ''
+        provider_name  = provider_user&.dig(:display_name) || 'Artist'
+        service_name   = DB[:services].where(id: booking[:service_id]).get(:name) || 'Service'
+        date_str       = booking[:booking_date].to_s
+        time_str       = booking[:booking_time].respond_to?(:strftime) ?
+                           booking[:booking_time].strftime('%H:%M') :
+                           booking[:booking_time].to_s
+        provider_note  = booking[:provider_note].to_s
+
+        html = <<~HTML
+          <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #f0e8e0;">
+            <div style="background:linear-gradient(135deg,#1C0A00,#3D1A08);padding:32px;text-align:center;">
+              <h1 style="color:#fff;margin:0;font-size:24px;">Message from Your Artist</h1>
+              <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:14px;">MyBraids</p>
+            </div>
+            <div style="padding:32px;">
+              <p style="font-size:15px;color:#1C0A00;">Hi <strong>#{client_name}</strong>,</p>
+              <p style="font-size:14px;color:#5a3e2b;line-height:1.6;">
+                <strong>#{provider_name}</strong> has replied to your booking request for
+                <strong>#{service_name}</strong> on <strong>#{format_date(date_str)} at #{time_str}</strong>.
+              </p>
+              <div style="background:#fdf6f0;border-left:4px solid #C85A2E;border-radius:6px;padding:16px 20px;margin:20px 0;">
+                <p style="margin:0;font-size:14px;color:#1C0A00;line-height:1.7;">#{provider_note}</p>
+              </div>
+              <p style="font-size:14px;color:#5a3e2b;line-height:1.6;">
+                You can view your booking details in your dashboard.
+              </p>
+              <div style="text-align:center;margin:28px 0;">
+                <a href="#{ENV.fetch('APP_URL','https://mybraids.com')}/dashboard/client"
+                   style="background:#C85A2E;color:#fff;padding:13px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;">
+                  View My Dashboard
+                </a>
+              </div>
+              <p style="font-size:13px;color:#9a7a6a;">The MyBraids Team</p>
+            </div>
+          </div>
+        HTML
+
+        unless client_email.empty?
+          Mailer.deliver(
+            to:      client_email,
+            subject: "#{provider_name} sent you a message about your booking",
+            html:    html
+          )
+        end
+
+        puts "[BookingMailer] Provider note notification sent for booking #{booking[:id]}"
+      rescue => e
+        puts "[BookingMailer] Provider note error: #{e.message}"
+      end
+    end
+  end
+
   # Auto-cancellation: called by the cron job when a pending booking expires.
   # Sends an email to the client only (provider missed their window).
   def self.send_auto_cancellation(booking:)

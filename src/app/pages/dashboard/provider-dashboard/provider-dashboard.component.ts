@@ -57,6 +57,12 @@ export class ProviderDashboardComponent implements OnInit {
 
   // Services & Pricing
   services        = signal<ProviderService[]>([]);
+  replyingBookingId = signal<string | null>(null);
+  replyText = '';
+  replySaving = signal(false);
+  replyError = signal('');
+  replySuccess = signal<string | null>(null);
+
   showServiceForm = signal(false);
   editingServiceId = signal<string | null>(null);
   serviceSaving   = signal(false);
@@ -363,6 +369,39 @@ export class ProviderDashboardComponent implements OnInit {
         list.map(b => b.id === id ? { ...b, status } : b)
       );
     } catch { /* ignore */ }
+  }
+
+  openReply(bookingId: string) {
+    this.replyingBookingId.set(bookingId);
+    this.replyText = '';
+    this.replyError.set('');
+    this.replySuccess.set(null);
+  }
+
+  cancelReply() {
+    this.replyingBookingId.set(null);
+    this.replyText = '';
+  }
+
+  async sendNote(bookingId: string) {
+    if (!this.replyText.trim()) { this.replyError.set('Please write a message.'); return; }
+    this.replySaving.set(true);
+    this.replyError.set('');
+    try {
+      await firstValueFrom(this.api.post(`/bookings/${bookingId}/note`, { note: this.replyText.trim() }));
+      // Update booking in local state
+      this.bookings.update(list =>
+        list.map(b => b.id === bookingId ? { ...b, providerNote: this.replyText.trim() } : b)
+      );
+      this.replySuccess.set(bookingId);
+      this.replyingBookingId.set(null);
+      this.replyText = '';
+      setTimeout(() => this.replySuccess.set(null), 4000);
+    } catch (e: any) {
+      this.replyError.set(e?.error?.error || 'Could not send message. Try again.');
+    } finally {
+      this.replySaving.set(false);
+    }
   }
 
   getStatusClass(status: string): string {

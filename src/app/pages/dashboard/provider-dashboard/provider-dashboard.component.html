@@ -206,7 +206,52 @@
               @if (booking.status === 'confirmed') {
                 <button class="btn btn-primary btn-sm" (click)="updateBookingStatus(booking.id, 'completed')">Mark Complete</button>
               }
+              @if (booking.status !== 'cancelled') {
+                <button class="btn btn-outline btn-sm" (click)="openReply(booking.id)">
+                  <i class="fas fa-reply"></i> Reply
+                </button>
+              }
             </div>
+
+            <!-- Client note -->
+            @if (booking.notes) {
+              <div class="booking-note client-note">
+                <span class="note-label"><i class="fas fa-comment-dots"></i> Client note</span>
+                <p>{{ booking.notes }}</p>
+              </div>
+            }
+
+            <!-- Provider's sent reply -->
+            @if (booking.providerNote && replySuccess() !== booking.id) {
+              <div class="booking-note provider-note">
+                <span class="note-label"><i class="fas fa-reply"></i> Your reply</span>
+                <p>{{ booking.providerNote }}</p>
+              </div>
+            }
+            @if (replySuccess() === booking.id) {
+              <div class="booking-note provider-note">
+                <span class="note-label"><i class="fas fa-check-circle"></i> Reply sent — email delivered to client</span>
+              </div>
+            }
+
+            <!-- Reply form -->
+            @if (replyingBookingId() === booking.id) {
+              <div class="booking-reply-form">
+                <textarea class="form-control" rows="3"
+                  placeholder="Write your reply to the client…"
+                  [(ngModel)]="replyText" name="replyText"></textarea>
+                @if (replyError()) {
+                  <p class="note-error"><i class="fas fa-exclamation-circle"></i> {{ replyError() }}</p>
+                }
+                <div class="reply-actions">
+                  <button class="btn btn-ghost btn-sm" (click)="cancelReply()">Cancel</button>
+                  <button class="btn btn-primary btn-sm" (click)="sendNote(booking.id)" [disabled]="replySaving()">
+                    @if (replySaving()) { <span class="spinner spinner-sm"></span> Sending… }
+                    @else { <i class="fas fa-paper-plane"></i> Send & Email Client }
+                  </button>
+                </div>
+              </div>
+            }
           </div>
         }
         }

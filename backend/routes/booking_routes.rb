@@ -160,6 +160,23 @@ module Routes
         { success: true }.to_json
       end
 
+      # ── POST /api/bookings/:id/note — provider replies to client note ─
+      app.post '/api/bookings/:id/note' do |id|
+        require_provider!
+        body = JSON.parse(request.body.read) rescue {}
+        note = body['note'].to_s.strip
+        halt 422, { error: 'Note cannot be empty.' }.to_json if note.empty?
+
+        pid     = DB[:providers].where(user_id: @current_user['id']).get(:id)
+        booking = DB[:bookings].where(id: id, provider_id: pid).first
+        halt 404, { error: 'Booking not found' }.to_json unless booking
+
+        DB[:bookings].where(id: id).update(provider_note: note, updated_at: Time.now)
+        BookingMailer.send_provider_note_notification(booking: booking.merge(provider_note: note))
+
+        { success: true }.to_json
+      end
+
       app.helpers do
         def serialize_booking(r)
           {
@@ -179,6 +196,7 @@ module Routes
             duration:      r[:duration].to_i,
             status:        r[:status],
             notes:         r[:notes] || '',
+            providerNote:  r[:provider_note] || '',
             createdAt:     r[:created_at],
             updatedAt:     r[:updated_at]
           }

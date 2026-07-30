@@ -427,6 +427,7 @@
               <th>Date &amp; Time</th>
               <th>Price</th>
               <th>Status</th>
+              <th>Notes</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -442,6 +443,17 @@
                 <td class="date-cell">{{ formatDate(b.date) }}<br><small>{{ b.time }}</small></td>
                 <td>${{ b.servicePrice }}</td>
                 <td><span class="badge" [style.background]="statusColor(b.status)">{{ b.status }}</span></td>
+                <td class="notes-cell">
+                  @if (b.notes) {
+                    <p class="note-item client-note-item"><span class="note-chip client-chip">Client</span> {{ b.notes }}</p>
+                  }
+                  @if (b.providerNote) {
+                    <p class="note-item provider-note-item"><span class="note-chip provider-chip">Artist</span> {{ b.providerNote }}</p>
+                  }
+                  @if (!b.notes && !b.providerNote) {
+                    <span class="text-muted" style="font-size:0.8rem">—</span>
+                  }
+                </td>
                 <td>
                   <select class="inline-select" [value]="b.status"
                           (change)="updateBookingStatus(b, $any($event.target).value)">
@@ -454,7 +466,7 @@
               </tr>
             }
             @if (!bookingsLoading() && bookings().length === 0) {
-              <tr><td colspan="7" class="empty-row">No bookings found</td></tr>
+              <tr><td colspan="8" class="empty-row">No bookings found</td></tr>
             }
           </tbody>
         </table>

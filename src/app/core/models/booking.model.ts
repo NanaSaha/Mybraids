@@ -17,6 +17,7 @@ export interface Booking {
   duration: number;     // minutes
   status: BookingStatus;
   notes: string;
+  providerNote: string;
   createdAt: Date;
   updatedAt: Date;
 }

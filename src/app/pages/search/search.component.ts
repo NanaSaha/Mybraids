@@ -3,7 +3,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProviderService, SearchFilters } from '../../core/services/provider.service';
-import { Provider, SERVICE_CATEGORIES, ServiceCategory } from '../../core/models/provider.model';
+import { ApiService } from '../../core/services/api.service';
+import { firstValueFrom } from 'rxjs';
+import { Provider } from '../../core/models/provider.model';
 import { ProviderCardComponent } from '../../shared/components/provider-card/provider-card.component';
 import { LocationAutocompleteComponent } from '../../shared/components/location-autocomplete/location-autocomplete.component';
 
@@ -17,12 +19,12 @@ import { LocationAutocompleteComponent } from '../../shared/components/location-
 export class SearchComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private providerService = inject(ProviderService);
+  private api = inject(ApiService);
 
   providers = signal<Provider[]>([]);
   isLoading = signal(false);
   showFilters = signal(false);
-
-  categories = SERVICE_CATEGORIES;
+  serviceTypes = signal<{ id: string; name: string }[]>([]);
 
   filters: SearchFilters = {
     location: '',
@@ -46,10 +48,15 @@ export class SearchComponent implements OnInit {
     { value: 4.8, label: '4.8★ and above' },
   ];
 
-  ngOnInit() {
+  async ngOnInit() {
+    try {
+      const types = await firstValueFrom(this.api.get<{ id: string; name: string }[]>('/service-types'));
+      this.serviceTypes.set(types);
+    } catch { /* non-critical — filter stays empty */ }
+
     this.route.queryParams.subscribe(params => {
       this.filters.location = params['location'] || '';
-      this.filters.category = (params['category'] as ServiceCategory) || '';
+      this.filters.category = params['category'] || '';
       this.runSearch();
     });
   }
@@ -79,7 +86,7 @@ export class SearchComponent implements OnInit {
   }
 
   getCategoryLabel(value: string): string {
-    return this.categories.find(c => c.value === value)?.label || value;
+    return this.serviceTypes().find(t => t.name === value)?.name || value;
   }
 
   getSkeletonArray(): number[] {

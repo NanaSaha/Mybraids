@@ -27,7 +27,7 @@ export interface AdminBooking {
   id: string; clientName: string; clientEmail: string;
   providerName: string; serviceName: string;
   servicePrice: number; currency: string;
-  date: string; time: string; status: string; notes?: string; createdAt: string;
+  date: string; time: string; status: string; notes?: string; providerNote?: string; createdAt: string;
 }
 
 export interface AdminReview {

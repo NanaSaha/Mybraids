@@ -57,6 +57,7 @@ export class BookingService {
         duration: 60,
         status: 'pending',
         notes: booking.notes ?? '',
+        providerNote: '',
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -127,7 +128,7 @@ export class BookingService {
       providerId: '1', providerName: 'Amara Diallo',
       serviceId: 's1', serviceName: 'Knotless Box Braids',
       servicePrice: 120, currency: 'USD', date: '2024-07-15', time: '10:00', duration: 240,
-      status: 'confirmed', notes: 'Please prepare hair with conditioner',
+      status: 'confirmed', notes: 'Please prepare hair with conditioner', providerNote: '',
       createdAt: new Date('2024-06-20'), updatedAt: new Date('2024-06-20'),
     },
     {
@@ -136,7 +137,7 @@ export class BookingService {
       providerId: '2', providerName: 'Fatima Ouédraogo',
       serviceId: 's2', serviceName: 'Evening Glam',
       servicePrice: 100, currency: 'USD', date: '2024-08-02', time: '14:00', duration: 60,
-      status: 'pending', notes: 'Birthday party, going for bold red look',
+      status: 'pending', notes: 'Birthday party, going for bold red look', providerNote: '',
       createdAt: new Date('2024-06-22'), updatedAt: new Date('2024-06-22'),
     },
   ];

@@ -378,6 +378,15 @@
 .cell-sub  { font-size: 12px; color: #7a5c48; margin: 0; }
 .date-cell { font-size: 13px; color: #7a5c48; white-space: nowrap; }
 
+.notes-cell { max-width: 220px; }
+.note-item { font-size: 12px; margin: 0 0 4px; line-height: 1.4; display: flex; gap: 4px; align-items: flex-start; }
+.note-chip {
+  display: inline-block; flex-shrink: 0; padding: 1px 6px; border-radius: 10px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 1px;
+  &.client-chip   { background: #EEF2FF; color: #4338CA; }
+  &.provider-chip { background: #FFF7ED; color: #B45309; }
+}
+
 .badge {
   display: inline-block; padding: 3px 10px;
   border-radius: 20px; font-size: 11px;

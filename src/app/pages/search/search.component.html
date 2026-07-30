@@ -18,8 +18,8 @@
           <i class="fas fa-scissors"></i>
           <select [(ngModel)]="filters.category" (change)="runSearch()">
             <option value="">All Services</option>
-            @for (cat of categories; track cat.value) {
-              <option [value]="cat.value">{{ cat.label }}</option>
+            @for (t of serviceTypes(); track t.id) {
+              <option [value]="t.name">{{ t.name }}</option>
             }
           </select>
         </div>
@@ -79,14 +79,11 @@
               <span class="radio-mark"></span>
               <span class="radio-label">All Services</span>
             </label>
-            @for (cat of categories; track cat.value) {
-              <label class="radio-opt" [class.checked]="filters.category === cat.value">
-                <input type="radio" [(ngModel)]="filters.category" [value]="cat.value" (change)="runSearch()">
+            @for (t of serviceTypes(); track t.id) {
+              <label class="radio-opt" [class.checked]="filters.category === t.name">
+                <input type="radio" [(ngModel)]="filters.category" [value]="t.name" (change)="runSearch()">
                 <span class="radio-mark"></span>
-                <span class="radio-label">
-                  <i class="fas {{ cat.icon }}" [style.color]="cat.color"></i>
-                  {{ cat.label }}
-                </span>
+                <span class="radio-label">{{ t.name }}</span>
               </label>
             }
           </div>
