@@ -184,7 +184,7 @@
             </div>
           }
           @for (booking of bookings(); track booking.id) {
-          <div class="booking-card">
+          <div class="booking-card clickable-card" (click)="openDetail(booking)">
             <div class="booking-artist-info">
               <div class="ba-avatar prov">{{ booking.clientName[0] }}</div>
               <div>
@@ -198,7 +198,7 @@
             </div>
             <div class="booking-price">{{ booking.currency }} {{ booking.servicePrice }}</div>
             <span class="status-badge" [class]="getStatusClass(booking.status)">{{ getStatusLabel(booking.status) }}</span>
-            <div class="booking-actions">
+            <div class="booking-actions" (click)="$event.stopPropagation()">
               @if (booking.status === 'pending') {
                 <button class="btn btn-primary btn-sm" (click)="updateBookingStatus(booking.id, 'confirmed')">Confirm</button>
                 <button class="btn btn-ghost btn-sm" (click)="updateBookingStatus(booking.id, 'cancelled')">Decline</button>
@@ -211,6 +211,9 @@
                   <i class="fas fa-reply"></i> Reply
                 </button>
               }
+              <button class="btn btn-ghost btn-sm" (click)="openDetail(booking)">
+                <i class="fas fa-eye"></i> Details
+              </button>
             </div>
 
             <!-- Client note -->
@@ -636,3 +639,86 @@
 
   </div>
 </div>
+
+<!-- Booking Detail Modal -->
+@if (selectedBooking()) {
+  <div class="booking-modal-overlay" (click)="closeDetail()">
+    <div class="booking-modal" (click)="$event.stopPropagation()">
+      <div class="bm-header">
+        <div class="bm-client-info">
+          <div class="bm-avatar">{{ selectedBooking()!.clientName[0] }}</div>
+          <div>
+            <h3>{{ selectedBooking()!.clientName }}</h3>
+            <p class="bm-service">{{ selectedBooking()!.serviceName }}</p>
+          </div>
+        </div>
+        <button class="bm-close" (click)="closeDetail()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="bm-body">
+        <div class="bm-section">
+          <h4><i class="fas fa-calendar-alt"></i> Appointment</h4>
+          <div class="bm-row"><span>Date</span><span>{{ formatDate(selectedBooking()!.date) }}</span></div>
+          <div class="bm-row"><span>Time</span><span>{{ selectedBooking()!.time }}</span></div>
+          <div class="bm-row"><span>Price</span><span>{{ selectedBooking()!.currency }} {{ selectedBooking()!.servicePrice }}</span></div>
+          <div class="bm-row"><span>Status</span>
+            <span class="status-badge" [class]="getStatusClass(selectedBooking()!.status)">{{ getStatusLabel(selectedBooking()!.status) }}</span>
+          </div>
+          @if (selectedBooking()!.paymentMethod) {
+            <div class="bm-row"><span>Payment</span><span>{{ selectedBooking()!.paymentMethod }}</span></div>
+          }
+        </div>
+        <div class="bm-section">
+          <h4><i class="fas fa-user"></i> Client Contact</h4>
+          <div class="bm-row"><span>Email</span><a [href]="'mailto:' + selectedBooking()!.clientEmail">{{ selectedBooking()!.clientEmail }}</a></div>
+          <div class="bm-row"><span>Phone</span><a [href]="'tel:' + selectedBooking()!.clientPhone">{{ selectedBooking()!.clientPhone || '—' }}</a></div>
+          @if (selectedBooking()!.clientLocation) {
+            <div class="bm-row"><span>Location</span><span>{{ selectedBooking()!.clientLocation }}</span></div>
+          }
+        </div>
+        @if (selectedBooking()!.hairType || selectedBooking()!.notes || selectedBooking()!.providerNote) {
+          <div class="bm-section">
+            <h4><i class="fas fa-clipboard"></i> Notes</h4>
+            @if (selectedBooking()!.hairType) {
+              <div class="bm-row">
+                <span>Hair type</span>
+                <span>{{ selectedBooking()!.hairType === 'own' ? 'With own hair' : 'With hair extension' }}</span>
+              </div>
+            }
+            @if (selectedBooking()!.notes) {
+              <div class="bm-note client-note">
+                <span class="note-label"><i class="fas fa-comment-dots"></i> Client note</span>
+                <p>{{ selectedBooking()!.notes }}</p>
+              </div>
+            }
+            @if (selectedBooking()!.providerNote) {
+              <div class="bm-note provider-note">
+                <span class="note-label"><i class="fas fa-reply"></i> Your reply</span>
+                <p>{{ selectedBooking()!.providerNote }}</p>
+              </div>
+            }
+          </div>
+        }
+        <div class="bm-footer">
+          @if (selectedBooking()!.status === 'pending') {
+            <button class="btn btn-primary" (click)="updateBookingStatus(selectedBooking()!.id, 'confirmed'); closeDetail()">
+              <i class="fas fa-check"></i> Confirm Booking
+            </button>
+            <button class="btn btn-ghost" (click)="updateBookingStatus(selectedBooking()!.id, 'cancelled'); closeDetail()">
+              Decline
+            </button>
+          }
+          @if (selectedBooking()!.status === 'confirmed') {
+            <button class="btn btn-primary" (click)="updateBookingStatus(selectedBooking()!.id, 'completed'); closeDetail()">
+              <i class="fas fa-check-double"></i> Mark Complete
+            </button>
+          }
+          @if (selectedBooking()!.status !== 'cancelled') {
+            <button class="btn btn-outline" (click)="closeDetail(); openReply(selectedBooking()!.id)">
+              <i class="fas fa-reply"></i> Reply to Client
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

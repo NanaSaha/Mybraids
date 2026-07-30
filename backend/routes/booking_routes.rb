@@ -70,7 +70,10 @@ module Routes
           duration:      service[:duration],
           service_price: service[:price],
           currency:      service[:currency],
-          notes:         body['notes'].to_s,
+          notes:          body['notes'].to_s,
+          client_location: body['clientLocation'].to_s,
+          hair_type:      body['hairType'].to_s,
+          payment_method: body['paymentMethod'].to_s,
           status:        'pending',
           created_at:    Time.now,
           updated_at:    Time.now
@@ -195,8 +198,11 @@ module Routes
             time:          r[:booking_time].respond_to?(:strftime) ? r[:booking_time].strftime('%H:%M') : r[:booking_time].to_s,
             duration:      r[:duration].to_i,
             status:        r[:status],
-            notes:         r[:notes] || '',
-            providerNote:  r[:provider_note] || '',
+            notes:          r[:notes] || '',
+            providerNote:   r[:provider_note] || '',
+            clientLocation: r[:client_location] || '',
+            hairType:       r[:hair_type] || '',
+            paymentMethod:  r[:payment_method] || '',
             createdAt:     r[:created_at],
             updatedAt:     r[:updated_at]
           }

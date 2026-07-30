@@ -47,6 +47,7 @@ export class BookingComponent implements OnInit {
   clientEmail = '';
   clientLocation = '';
   notes = '';
+  hairType = '';
 
   readonly paymentMethods = [
     { id: 'card',     label: 'Credit / Debit Card', desc: 'Visa, Mastercard, Amex', icon: '💳' },
@@ -111,6 +112,11 @@ export class BookingComponent implements OnInit {
   ];
 
   availableTimeSlots = signal<string[]>([]);
+
+  showHairTypeOption = computed(() => {
+    const name = (this.selectedService()?.name ?? '').toLowerCase();
+    return /hair|cornrow|braid/.test(name);
+  });
 
   private readonly dayNames = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
   private readonly dayLabels: Record<string, string> = {
@@ -294,6 +300,7 @@ export class BookingComponent implements OnInit {
         notes: this.notes,
         clientPhone: `${this.clientPhoneCode}${this.clientPhone.trim()}`,
         clientLocation: this.clientLocation,
+        hairType: this.showHairTypeOption() ? this.hairType : '',
         paymentMethod: paymentLabel,
       });
       this.bookingId.set(id);

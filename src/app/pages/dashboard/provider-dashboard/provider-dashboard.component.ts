@@ -57,6 +57,8 @@ export class ProviderDashboardComponent implements OnInit {
 
   // Services & Pricing
   services        = signal<ProviderService[]>([]);
+  selectedBooking = signal<Booking | null>(null);
+
   replyingBookingId = signal<string | null>(null);
   replyText = '';
   replySaving = signal(false);
@@ -370,6 +372,9 @@ export class ProviderDashboardComponent implements OnInit {
       );
     } catch { /* ignore */ }
   }
+
+  openDetail(b: Booking) { this.selectedBooking.set(b); }
+  closeDetail() { this.selectedBooking.set(null); }
 
   openReply(bookingId: string) {
     this.replyingBookingId.set(bookingId);

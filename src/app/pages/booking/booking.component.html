@@ -206,6 +206,23 @@
                     placeholder="e.g. London, UK or 12 Oak Street, Manchester"
                     [class.field-invalid]="stepAttempted() && !clientLocation.trim()">
                 </div>
+                @if (showHairTypeOption()) {
+                  <div class="form-group">
+                    <label>Hair Type <span class="required">*</span></label>
+                    <div class="hair-type-options">
+                      <label class="hair-type-opt" [class.selected]="hairType === 'own'">
+                        <input type="radio" name="hairType" value="own" [(ngModel)]="hairType">
+                        <span class="hair-type-icon"><i class="fas fa-user"></i></span>
+                        <span class="hair-type-label">With my own hair</span>
+                      </label>
+                      <label class="hair-type-opt" [class.selected]="hairType === 'extension'">
+                        <input type="radio" name="hairType" value="extension" [(ngModel)]="hairType">
+                        <span class="hair-type-icon"><i class="fas fa-magic"></i></span>
+                        <span class="hair-type-label">With hair extension</span>
+                      </label>
+                    </div>
+                  </div>
+                }
                 <div class="form-group">
                   <label>Special Requests or Notes</label>
                   <textarea class="form-control" [(ngModel)]="notes" placeholder="Any specific styles, hair length, references etc."></textarea>
@@ -256,6 +273,12 @@
                     <span>Location</span>
                     <span>{{ clientLocation }}</span>
                   </div>
+                  @if (showHairTypeOption() && hairType) {
+                    <div class="summary-row">
+                      <span>Hair Type</span>
+                      <span>{{ hairType === 'own' ? 'With my own hair' : 'With hair extension' }}</span>
+                    </div>
+                  }
                   @if (notes) {
                     <div class="summary-row">
                       <span>Notes</span>

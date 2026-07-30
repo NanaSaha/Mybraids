@@ -79,7 +79,7 @@
         } @else {
           <div class="bookings-list">
             @for (booking of upcomingBookings; track booking.id) {
-              <div class="booking-card">
+              <div class="booking-card clickable-card" (click)="openDetail(booking)">
                 <div class="booking-artist-info">
                   <div class="ba-avatar">{{ getInitials(booking.providerName) }}</div>
                   <div>
@@ -99,8 +99,9 @@
                     {{ getStatusLabel(booking.status) }}
                   </span>
                 </div>
-                <div class="booking-actions">
+                <div class="booking-actions" (click)="$event.stopPropagation()">
                   <a [routerLink]="['/provider', booking.providerId]" class="btn btn-ghost btn-sm">View Artist</a>
+                  <button class="btn btn-ghost btn-sm" (click)="openDetail(booking)"><i class="fas fa-eye"></i> Details</button>
                   @if (booking.status !== 'cancelled') {
                     <button class="btn btn-sm cancel-btn" (click)="cancelBooking(booking.id)">Cancel</button>
                   }
@@ -135,7 +136,7 @@
         } @else {
           <div class="bookings-list">
             @for (booking of pastBookings; track booking.id) {
-              <div class="booking-card faded">
+              <div class="booking-card faded clickable-card" (click)="openDetail(booking)">
                 <div class="booking-artist-info">
                   <div class="ba-avatar">{{ getInitials(booking.providerName) }}</div>
                   <div>
@@ -153,7 +154,7 @@
                     {{ getStatusLabel(booking.status) }}
                   </span>
                 </div>
-                <div class="booking-actions">
+                <div class="booking-actions" (click)="$event.stopPropagation()">
                   @if (booking.status === 'completed') {
                     @if (isReviewed(booking.id)) {
                       <span class="review-done"><i class="fas fa-check-circle"></i> Reviewed</span>
@@ -164,6 +165,7 @@
                     }
                   }
                   <a [routerLink]="['/book', booking.providerId]" class="btn btn-ghost btn-sm">Book Again</a>
+                  <button class="btn btn-ghost btn-sm" (click)="openDetail(booking)"><i class="fas fa-eye"></i> Details</button>
                 </div>
 
                 @if (reviewingBookingId() === booking.id) {
@@ -290,3 +292,73 @@
 
   </div>
 </div>
+
+<!-- Booking Detail Modal -->
+@if (selectedBooking()) {
+  <div class="booking-modal-overlay" (click)="closeDetail()">
+    <div class="booking-modal" (click)="$event.stopPropagation()">
+      <div class="bm-header">
+        <div class="bm-artist-info">
+          <div class="bm-avatar">{{ getInitials(selectedBooking()!.providerName) }}</div>
+          <div>
+            <h3>{{ selectedBooking()!.providerName }}</h3>
+            <p class="bm-service">{{ selectedBooking()!.serviceName }}</p>
+          </div>
+        </div>
+        <button class="bm-close" (click)="closeDetail()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="bm-body">
+        <div class="bm-section">
+          <h4><i class="fas fa-calendar-alt"></i> Appointment</h4>
+          <div class="bm-row"><span>Date</span><span>{{ formatDate(selectedBooking()!.date) }}</span></div>
+          <div class="bm-row"><span>Time</span><span>{{ selectedBooking()!.time }}</span></div>
+          <div class="bm-row"><span>Price</span><span>{{ selectedBooking()!.currency }} {{ selectedBooking()!.servicePrice }}</span></div>
+          <div class="bm-row"><span>Status</span>
+            <span class="status-badge" [class]="getStatusClass(selectedBooking()!.status)">{{ getStatusLabel(selectedBooking()!.status) }}</span>
+          </div>
+          @if (selectedBooking()!.paymentMethod) {
+            <div class="bm-row"><span>Payment</span><span>{{ selectedBooking()!.paymentMethod }}</span></div>
+          }
+        </div>
+        @if (selectedBooking()!.clientLocation || selectedBooking()!.hairType || selectedBooking()!.notes) {
+          <div class="bm-section">
+            <h4><i class="fas fa-clipboard"></i> Your Booking Details</h4>
+            @if (selectedBooking()!.clientLocation) {
+              <div class="bm-row"><span>Your location</span><span>{{ selectedBooking()!.clientLocation }}</span></div>
+            }
+            @if (selectedBooking()!.hairType) {
+              <div class="bm-row">
+                <span>Hair type</span>
+                <span>{{ selectedBooking()!.hairType === 'own' ? 'With own hair' : 'With hair extension' }}</span>
+              </div>
+            }
+            @if (selectedBooking()!.notes) {
+              <div class="bm-note client-note">
+                <span class="note-label"><i class="fas fa-comment-dots"></i> Your note</span>
+                <p>{{ selectedBooking()!.notes }}</p>
+              </div>
+            }
+          </div>
+        }
+        @if (selectedBooking()!.providerNote) {
+          <div class="bm-section">
+            <h4><i class="fas fa-reply"></i> Message from Artist</h4>
+            <div class="bm-note provider-note">
+              <p>{{ selectedBooking()!.providerNote }}</p>
+            </div>
+          </div>
+        }
+        <div class="bm-footer">
+          <a [routerLink]="['/provider', selectedBooking()!.providerId]" class="btn btn-outline" (click)="closeDetail()">
+            <i class="fas fa-user"></i> View Artist Profile
+          </a>
+          @if (selectedBooking()!.status !== 'cancelled') {
+            <button class="btn btn-ghost" (click)="cancelBooking(selectedBooking()!.id); closeDetail()">
+              Cancel Booking
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

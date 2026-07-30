@@ -32,6 +32,7 @@ export class BookingService {
     notes?: string;
     clientPhone?: string;
     clientLocation?: string;
+    hairType?: string;
     paymentMethod?: string;
   }): Promise<string> {
     try {
@@ -58,6 +59,9 @@ export class BookingService {
         status: 'pending',
         notes: booking.notes ?? '',
         providerNote: '',
+        clientLocation: booking.clientLocation ?? '',
+        hairType: booking.hairType ?? '',
+        paymentMethod: booking.paymentMethod ?? '',
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -129,6 +133,7 @@ export class BookingService {
       serviceId: 's1', serviceName: 'Knotless Box Braids',
       servicePrice: 120, currency: 'USD', date: '2024-07-15', time: '10:00', duration: 240,
       status: 'confirmed', notes: 'Please prepare hair with conditioner', providerNote: '',
+      clientLocation: '', hairType: '', paymentMethod: '',
       createdAt: new Date('2024-06-20'), updatedAt: new Date('2024-06-20'),
     },
     {
@@ -138,6 +143,7 @@ export class BookingService {
       serviceId: 's2', serviceName: 'Evening Glam',
       servicePrice: 100, currency: 'USD', date: '2024-08-02', time: '14:00', duration: 60,
       status: 'pending', notes: 'Birthday party, going for bold red look', providerNote: '',
+      clientLocation: '', hairType: '', paymentMethod: '',
       createdAt: new Date('2024-06-22'), updatedAt: new Date('2024-06-22'),
     },
   ];

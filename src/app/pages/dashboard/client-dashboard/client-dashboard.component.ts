@@ -91,6 +91,8 @@ export class ClientDashboardComponent implements OnInit {
     { code: '+972', country: 'Israel' },
   ];
 
+  selectedBooking = signal<Booking | null>(null);
+
   reviewingBookingId = signal<string | null>(null);
   reviewRating       = 0;
   reviewComment      = '';
@@ -183,6 +185,9 @@ export class ClientDashboardComponent implements OnInit {
     await this.bookingService.cancelBooking(id);
     this.bookings.update(list => list.map(b => b.id === id ? { ...b, status: 'cancelled' as BookingStatus } : b));
   }
+
+  openDetail(b: Booking) { this.selectedBooking.set(b); }
+  closeDetail() { this.selectedBooking.set(null); }
 
   openReview(booking: Booking) {
     this.reviewingBookingId.set(booking.id);
