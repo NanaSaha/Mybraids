@@ -236,6 +236,13 @@
 
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
 
+.form-row-half {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
 .input-wrapper {
   display: flex;
   align-items: center;

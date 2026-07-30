@@ -18,7 +18,8 @@ export class RegisterComponent implements OnInit, AfterViewInit {
 
   @ViewChild('googleBtnContainer') googleBtnContainer!: ElementRef<HTMLDivElement>;
 
-  name = '';
+  firstName = '';
+  lastName = '';
   email = '';
   phone = '';
   password = '';
@@ -47,7 +48,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   }
 
   async onRegister() {
-    if (!this.name || !this.email || !this.phone || !this.password) {
+    if (!this.firstName.trim() || !this.lastName.trim() || !this.email || !this.phone || !this.password) {
       this.error.set('Please fill in all required fields including phone number.');
       return;
     }
@@ -61,8 +62,9 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     }
     this.isLoading.set(true);
     this.error.set('');
+    const fullName = `${this.firstName.trim()} ${this.lastName.trim()}`;
     try {
-      await this.authService.register(this.email, this.password, this.name, this.role(), this.phone);
+      await this.authService.register(this.email, this.password, fullName, this.role(), this.phone);
     } catch (e: any) {
       this.error.set(e?.error?.error || e?.message || 'Registration failed. Please try again.');
     } finally {
