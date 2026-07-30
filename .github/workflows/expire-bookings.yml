@@ -1,0 +1,21 @@
+name: Auto-cancel unconfirmed bookings
+
+on:
+  schedule:
+    # Runs every day at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel pending bookings within 24 hrs of appointment
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://mybraids.onrender.com/api/jobs/expire-bookings?secret=${{ secrets.CRON_SECRET }}")
+          echo "Response status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "Expire job failed with status $STATUS"
+            exit 1
+          fi
