@@ -6,6 +6,8 @@ import { ProviderService } from '../../core/services/provider.service';
 import { BookingService } from '../../core/services/booking.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Provider, ServiceOffering } from '../../core/models/provider.model';
+import { ApiService } from '../../core/services/api.service';
+import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 
 type Step = 1 | 2 | 3 | 4;
@@ -23,6 +25,7 @@ export class BookingComponent implements OnInit {
   private providerService = inject(ProviderService);
   private bookingService = inject(BookingService);
   private authService = inject(AuthService);
+  private api = inject(ApiService);
 
   provider = signal<Provider | null>(null);
   currentStep = signal<Step>(1);
@@ -35,6 +38,8 @@ export class BookingComponent implements OnInit {
   selectedDate = signal('');
   selectedTime = signal('');
   selectedPaymentMethod = signal('');
+  bookedDates = signal<string[]>([]);
+  dateBookedError = signal(false);
 
   clientName = '';
   clientPhone = '';
@@ -136,9 +141,7 @@ export class BookingComponent implements OnInit {
   }
 
   get minDate(): string {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
   }
 
   async ngOnInit() {
@@ -146,6 +149,10 @@ export class BookingComponent implements OnInit {
     if (id) {
       const p = await this.providerService.getProviderById(id);
       this.provider.set(p);
+      try {
+        const dates = await firstValueFrom(this.api.get<string[]>(`/providers/${id}/booked-dates`));
+        this.bookedDates.set(dates);
+      } catch { /* non-critical — proceed without booked dates */ }
     }
     const user = this.authService.currentUser();
     if (user) {
@@ -172,7 +179,16 @@ export class BookingComponent implements OnInit {
   onDateChange() {
     const p = this.provider();
     const svc = this.selectedService();
+    this.dateBookedError.set(false);
     if (!p || !svc || !this.selectedDate()) return;
+
+    // Block dates already confirmed by the provider
+    if (this.bookedDates().includes(this.selectedDate())) {
+      this.dateBookedError.set(true);
+      this.availableTimeSlots.set([]);
+      this.selectedTime.set('');
+      return;
+    }
 
     const day = new Date(this.selectedDate() + 'T00:00:00')
       .toLocaleDateString('en-US', { weekday: 'long' })

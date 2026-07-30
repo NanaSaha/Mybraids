@@ -135,6 +135,12 @@
                     [(ngModel)]="selectedDate"
                     (change)="onDateChange()"
                   >
+                  @if (dateBookedError()) {
+                    <p class="date-booked-error">
+                      <i class="fas fa-calendar-times"></i>
+                      This date is already fully booked. Please choose another date.
+                    </p>
+                  }
                 </div>
 
                 @if (selectedDate() && availableTimeSlots().length > 0) {

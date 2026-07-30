@@ -201,6 +201,19 @@ module Routes
         build_provider(row).to_json
       end
 
+      # ── GET /api/providers/:id/booked-dates ─────────────────────────
+      # Returns date strings for confirmed bookings (today onwards).
+      # Used by the booking UI to disable already-booked dates.
+      app.get '/api/providers/:id/booked-dates' do |id|
+        dates = DB[:bookings]
+          .where(provider_id: id, status: 'confirmed')
+          .where { booking_date >= Date.today }
+          .select_map(:booking_date)
+          .map(&:to_s)
+          .uniq
+        dates.to_json
+      end
+
       # ── GET /api/providers/:id/reviews ───────────────────────────────
       app.get '/api/providers/:id/reviews' do |id|
         rows = DB[:reviews]

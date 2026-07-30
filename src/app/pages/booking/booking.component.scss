@@ -310,6 +310,22 @@
   @media (max-width: 580px) { grid-template-columns: 1fr; }
 }
 
+.date-booked-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff5f5;
+  border: 1.5px solid #f5c6c6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: #C62828;
+  font-weight: 500;
+  margin-top: 8px;
+
+  i { font-size: 0.9rem; }
+}
+
 .step-error {
   display: flex;
   align-items: center;

@@ -128,6 +128,27 @@ module Routes
         { success: true }.to_json
       end
 
+      # ── GET /api/jobs/expire-bookings — cron auto-cancellation ───────
+      # Cancel pending bookings whose appointment is within the next 24 hours.
+      # Protect with CRON_SECRET env var; call via Render cron or cron-job.org.
+      app.get '/api/jobs/expire-bookings' do
+        secret = ENV.fetch('CRON_SECRET', '')
+        halt 401, { error: 'Unauthorized' }.to_json if secret.empty? || params[:secret] != secret
+
+        cutoff = Date.today + 1  # anything for today or earlier is past the 24-hr window
+        expired = DB[:bookings]
+          .where(status: 'pending')
+          .where { booking_date <= cutoff }
+          .all
+
+        expired.each do |booking|
+          DB[:bookings].where(id: booking[:id]).update(status: 'cancelled', updated_at: Time.now)
+          BookingMailer.send_auto_cancellation(booking: booking)
+        end
+
+        { cancelled: expired.length, at: Time.now.to_s }.to_json
+      end
+
       # ── DELETE /api/bookings/:id — client cancels ────────────────────
       app.delete '/api/bookings/:id' do |id|
         authenticate!
