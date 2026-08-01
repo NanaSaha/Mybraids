@@ -184,8 +184,8 @@
             </div>
           }
           @for (booking of bookings(); track booking.id) {
-          <div class="booking-card clickable-card" (click)="openDetail(booking)">
-            <div class="booking-artist-info">
+          <div class="booking-card clickable-card" >
+            <div class="booking-artist-info" (click)="openDetail(booking)">
               <div class="ba-avatar prov">{{ booking.clientName[0] }}</div>
               <div>
                 <h4>{{ booking.clientName }}</h4>
