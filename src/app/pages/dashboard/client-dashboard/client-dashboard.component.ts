@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
@@ -20,6 +20,7 @@ export class ClientDashboardComponent implements OnInit {
   private bookingService = inject(BookingService);
   private api  = inject(ApiService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   activeTab = signal<'upcoming' | 'past' | 'profile'>('upcoming');
   bookings  = signal<Booking[]>([]);
@@ -188,6 +189,7 @@ export class ClientDashboardComponent implements OnInit {
 
   openDetail(b: Booking) { this.selectedBooking.set(b); }
   closeDetail() { this.selectedBooking.set(null); }
+  bookAgain(e: Event, providerId: string) { e.stopPropagation(); this.router.navigate(['/book', providerId]); }
 
   openReview(booking: Booking) {
     this.reviewingBookingId.set(booking.id);

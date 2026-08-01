@@ -164,8 +164,8 @@
                       </button>
                     }
                   }
-                  <a [routerLink]="['/book', booking.providerId]" class="btn btn-ghost btn-sm">Book Again</a>
-                  <button class="btn btn-ghost btn-sm" (click)="openDetail(booking)"><i class="fas fa-eye"></i> Details</button>
+                  <button class="btn btn-ghost btn-sm" (click)="bookAgain($event, booking.providerId)">Book Again</button>
+                  <button class="btn btn-ghost btn-sm" (click)="$event.stopPropagation(); openDetail(booking)"><i class="fas fa-eye"></i> Details</button>
                 </div>
 
                 @if (reviewingBookingId() === booking.id) {
