@@ -135,12 +135,6 @@
                     [(ngModel)]="selectedDate"
                     (change)="onDateChange()"
                   >
-                  @if (dateBookedError()) {
-                    <p class="date-booked-error">
-                      <i class="fas fa-calendar-times"></i>
-                      This date is already fully booked. Please choose another date.
-                    </p>
-                  }
                 </div>
 
                 @if (selectedDate() && availableTimeSlots().length > 0) {
@@ -163,7 +157,7 @@
                 @if (selectedDate() && availableTimeSlots().length === 0) {
                   <div class="no-slots">
                     <i class="fas fa-calendar-times"></i>
-                    <p>This artist is not available on that day. Check the schedule above and pick an open day.</p>
+                    <p>No available times on this date. The artist may be fully booked or closed — try another day.</p>
                   </div>
                 }
               </div>

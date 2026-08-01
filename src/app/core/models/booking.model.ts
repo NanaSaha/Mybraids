@@ -18,6 +18,7 @@ export interface Booking {
   status: BookingStatus;
   notes: string;
   providerNote: string;
+  clientReply: string;
   clientLocation: string;
   hairType: string;
   paymentMethod: string;

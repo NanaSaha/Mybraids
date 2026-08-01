@@ -37,6 +37,7 @@ export class ProviderDashboardComponent implements OnInit {
 
   // Service type names from admin — drive the Service Category dropdown
   categoryOptions = computed(() => this.serviceTypeOptions().map(s => s.name));
+  pendingCount = computed(() => this.bookings().filter(b => b.status === 'pending').length);
   isSaving         = signal(false);
   saveSuccess      = signal(false);
   uploadError      = signal('');

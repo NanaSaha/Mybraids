@@ -163,6 +163,23 @@ module Routes
         { success: true }.to_json
       end
 
+      # ── POST /api/bookings/:id/client-reply — client replies to provider note ─
+      app.post '/api/bookings/:id/client-reply' do |id|
+        authenticate!
+        body  = JSON.parse(request.body.read) rescue {}
+        reply = body['reply'].to_s.strip
+        halt 422, { error: 'Reply cannot be empty.' }.to_json if reply.empty?
+
+        booking = DB[:bookings].where(id: id, client_id: @current_user['id']).first
+        halt 404, { error: 'Booking not found' }.to_json unless booking
+        halt 422, { error: 'No provider message to reply to.' }.to_json if booking[:provider_note].to_s.strip.empty?
+
+        DB[:bookings].where(id: id).update(client_reply: reply, updated_at: Time.now)
+        BookingMailer.send_client_reply_notification(booking: booking.merge(client_reply: reply))
+
+        { success: true }.to_json
+      end
+
       # ── POST /api/bookings/:id/note — provider replies to client note ─
       app.post '/api/bookings/:id/note' do |id|
         require_provider!
@@ -200,6 +217,7 @@ module Routes
             status:        r[:status],
             notes:          r[:notes] || '',
             providerNote:   r[:provider_note] || '',
+            clientReply:    r[:client_reply] || '',
             clientLocation: r[:client_location] || '',
             hairType:       r[:hair_type] || '',
             paymentMethod:  r[:payment_method] || '',

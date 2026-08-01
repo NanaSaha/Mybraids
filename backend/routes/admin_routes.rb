@@ -231,6 +231,7 @@ module Routes
             servicePrice: r[:service_price].to_f, currency: r[:currency],
             date: r[:booking_date].to_s, time: r[:booking_time].to_s,
             status: r[:status], notes: r[:notes], providerNote: r[:provider_note] || '',
+            clientReply: r[:client_reply] || '',
             hairType: r[:hair_type] || '', clientLocation: r[:client_location] || '',
             createdAt: r[:created_at] }
         }.to_json

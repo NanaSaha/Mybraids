@@ -42,6 +42,9 @@
         </button>
         <button class="dash-tab" [class.active]="activeTab() === 'bookings'" (click)="activeTab.set('bookings')">
           <i class="fas fa-calendar"></i> Bookings
+          @if (pendingCount() > 0) {
+            <span class="tab-badge">{{ pendingCount() }}</span>
+          }
         </button>
         <button class="dash-tab" [class.active]="activeTab() === 'services'" (click)="activeTab.set('services')">
           <i class="fas fa-tags"></i> Services
@@ -696,6 +699,12 @@
                 <p>{{ selectedBooking()!.providerNote }}</p>
               </div>
             }
+            @if (selectedBooking()!.clientReply) {
+              <div class="bm-note client-note" style="margin-top:10px;">
+                <span class="note-label"><i class="fas fa-comment"></i> Client replied</span>
+                <p>{{ selectedBooking()!.clientReply }}</p>
+              </div>
+            }
           </div>
         }
         <div class="bm-footer">
@@ -712,11 +721,11 @@
               <i class="fas fa-check-double"></i> Mark Complete
             </button>
           }
-          @if (selectedBooking()!.status !== 'cancelled') {
+          <!-- @if (selectedBooking()!.status !== 'cancelled') {
             <button class="btn btn-outline" (click)="closeDetail(); openReply(selectedBooking()!.id)">
               <i class="fas fa-reply"></i> Reply to Client
             </button>
-          }
+          } -->
         </div>
       </div>
     </div>

@@ -94,6 +94,12 @@ export class ClientDashboardComponent implements OnInit {
 
   selectedBooking = signal<Booking | null>(null);
 
+  clientReplyingId  = signal<string | null>(null);
+  clientReplyText   = '';
+  clientReplySaving = signal(false);
+  clientReplyError  = signal('');
+  clientReplySuccess = signal<string | null>(null);
+
   reviewingBookingId = signal<string | null>(null);
   reviewRating       = 0;
   reviewComment      = '';
@@ -190,6 +196,41 @@ export class ClientDashboardComponent implements OnInit {
   openDetail(b: Booking) { this.selectedBooking.set(b); }
   closeDetail() { this.selectedBooking.set(null); }
   bookAgain(e: Event, providerId: string) { e.stopPropagation(); this.router.navigate(['/book', providerId]); }
+
+  openClientReply(bookingId: string) {
+    this.clientReplyingId.set(bookingId);
+    this.clientReplyText = '';
+    this.clientReplyError.set('');
+  }
+
+  cancelClientReply() {
+    this.clientReplyingId.set(null);
+    this.clientReplyText = '';
+  }
+
+  async sendClientReply(bookingId: string) {
+    if (!this.clientReplyText.trim()) { this.clientReplyError.set('Please write a reply.'); return; }
+    this.clientReplySaving.set(true);
+    this.clientReplyError.set('');
+    try {
+      await firstValueFrom(this.api.post(`/bookings/${bookingId}/client-reply`, { reply: this.clientReplyText.trim() }));
+      const reply = this.clientReplyText.trim();
+      this.bookings.update(list =>
+        list.map(b => b.id === bookingId ? { ...b, clientReply: reply } : b)
+      );
+      if (this.selectedBooking()?.id === bookingId) {
+        this.selectedBooking.update(b => b ? { ...b, clientReply: reply } : b);
+      }
+      this.clientReplySuccess.set(bookingId);
+      this.clientReplyingId.set(null);
+      this.clientReplyText = '';
+      setTimeout(() => this.clientReplySuccess.set(null), 4000);
+    } catch (e: any) {
+      this.clientReplyError.set(e?.error?.error || 'Could not send reply. Try again.');
+    } finally {
+      this.clientReplySaving.set(false);
+    }
+  }
 
   openReview(booking: Booking) {
     this.reviewingBookingId.set(booking.id);

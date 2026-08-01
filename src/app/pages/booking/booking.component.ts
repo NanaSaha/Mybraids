@@ -38,8 +38,7 @@ export class BookingComponent implements OnInit {
   selectedDate = signal('');
   selectedTime = signal('');
   selectedPaymentMethod = signal('');
-  bookedDates = signal<string[]>([]);
-  dateBookedError = signal(false);
+  bookedSlots = signal<{ date: string; time: string }[]>([]);
 
   clientName = '';
   clientPhone = '';
@@ -156,8 +155,8 @@ export class BookingComponent implements OnInit {
       const p = await this.providerService.getProviderById(id);
       this.provider.set(p);
       try {
-        const dates = await firstValueFrom(this.api.get<string[]>(`/providers/${id}/booked-dates`));
-        this.bookedDates.set(dates);
+        const slots = await firstValueFrom(this.api.get<{ date: string; time: string }[]>(`/providers/${id}/booked-dates`));
+        this.bookedSlots.set(slots);
       } catch { /* non-critical — proceed without booked dates */ }
     }
     const user = this.authService.currentUser();
@@ -185,16 +184,7 @@ export class BookingComponent implements OnInit {
   onDateChange() {
     const p = this.provider();
     const svc = this.selectedService();
-    this.dateBookedError.set(false);
     if (!p || !svc || !this.selectedDate()) return;
-
-    // Block dates already confirmed by the provider
-    if (this.bookedDates().includes(this.selectedDate())) {
-      this.dateBookedError.set(true);
-      this.availableTimeSlots.set([]);
-      this.selectedTime.set('');
-      return;
-    }
 
     const day = new Date(this.selectedDate() + 'T00:00:00')
       .toLocaleDateString('en-US', { weekday: 'long' })
@@ -203,14 +193,33 @@ export class BookingComponent implements OnInit {
     const avail = (p as any).availability ?? {};
     const slot  = avail[day];
 
-    const open  = slot?.open  || '09:00';
-    const close = slot?.close || '18:00';
+    const open   = slot?.open  || '09:00';
+    const close  = slot?.close || '18:00';
     const isOpen = slot ? (slot.available === true || slot.available === 1) : true;
 
     if (isOpen && open && close) {
-      this.availableTimeSlots.set(
-        this.bookingService.generateTimeSlots(open, close, svc.duration || 60)
+      let slots = this.bookingService.generateTimeSlots(open, close, svc.duration || 60);
+
+      // Filter out times that have already passed if booking today
+      const today = new Date().toISOString().split('T')[0];
+      if (this.selectedDate() === today) {
+        const now = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+        slots = slots.filter(t => {
+          const [h, m] = t.split(':').map(Number);
+          return h * 60 + m > nowMins;
+        });
+      }
+
+      // Filter out time slots already confirmed for this provider
+      const confirmedTimes = new Set(
+        this.bookedSlots()
+          .filter(s => s.date === this.selectedDate())
+          .map(s => s.time)
       );
+      slots = slots.filter(t => !confirmedTimes.has(t));
+
+      this.availableTimeSlots.set(slots);
     } else {
       this.availableTimeSlots.set([]);
     }

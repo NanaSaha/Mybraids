@@ -202,16 +202,20 @@ module Routes
       end
 
       # ── GET /api/providers/:id/booked-dates ─────────────────────────
-      # Returns date strings for confirmed bookings (today onwards).
-      # Used by the booking UI to disable already-booked dates.
+      # Returns confirmed booking {date, time} slots (today onwards).
+      # Used by the booking UI to disable already-taken time slots.
       app.get '/api/providers/:id/booked-dates' do |id|
-        dates = DB[:bookings]
+        rows = DB[:bookings]
           .where(provider_id: id, status: 'confirmed')
           .where { booking_date >= Date.today }
-          .select_map(:booking_date)
-          .map(&:to_s)
-          .uniq
-        dates.to_json
+          .select(:booking_date, :booking_time)
+          .all
+        rows.map do |r|
+          time_str = r[:booking_time].respond_to?(:strftime) ?
+                       r[:booking_time].strftime('%H:%M') :
+                       r[:booking_time].to_s.slice(0, 5)
+          { date: r[:booking_date].to_s, time: time_str }
+        end.to_json
       end
 
       # ── GET /api/providers/:id/reviews ───────────────────────────────

@@ -102,6 +102,21 @@
   }
 }
 
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: #C85A2E;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 20px;
+  line-height: 1;
+}
+
 /* Content */
 .dash-content {
   padding: 32px 0 80px;

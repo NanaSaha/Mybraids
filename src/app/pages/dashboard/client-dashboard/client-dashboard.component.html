@@ -98,6 +98,9 @@
                   <span class="status-badge" [class]="getStatusClass(booking.status)">
                     {{ getStatusLabel(booking.status) }}
                   </span>
+                  @if (booking.providerNote && !booking.clientReply) {
+                    <span class="msg-badge"><i class="fas fa-envelope"></i> Artist message</span>
+                  }
                 </div>
                 <div class="booking-actions" (click)="$event.stopPropagation()">
                   <a [routerLink]="['/provider', booking.providerId]" class="btn btn-ghost btn-sm">View Artist</a>
@@ -346,6 +349,39 @@
             <div class="bm-note provider-note">
               <p>{{ selectedBooking()!.providerNote }}</p>
             </div>
+            @if (selectedBooking()!.clientReply) {
+              <div class="bm-note client-note" style="margin-top:10px;">
+                <span class="note-label"><i class="fas fa-comment-dots"></i> Your reply</span>
+                <p>{{ selectedBooking()!.clientReply }}</p>
+              </div>
+            }
+            @if (!selectedBooking()!.clientReply && clientReplyingId() !== selectedBooking()!.id) {
+              <button class="btn btn-outline btn-sm" style="margin-top:12px;"
+                (click)="openClientReply(selectedBooking()!.id)">
+                <i class="fas fa-reply"></i> Reply to Artist
+              </button>
+            }
+            @if (clientReplyingId() === selectedBooking()!.id) {
+              <div class="reply-form" style="margin-top:12px;">
+                <textarea
+                  class="reply-textarea"
+                  rows="3"
+                  placeholder="Write your reply…"
+                  [(ngModel)]="clientReplyText"
+                ></textarea>
+                @if (clientReplyError()) {
+                  <p class="reply-error">{{ clientReplyError() }}</p>
+                }
+                <div class="reply-actions">
+                  <button class="btn btn-primary btn-sm"
+                    [disabled]="clientReplySaving()"
+                    (click)="sendClientReply(selectedBooking()!.id)">
+                    @if (clientReplySaving()) { Sending… } @else { Send Reply }
+                  </button>
+                  <button class="btn btn-ghost btn-sm" (click)="cancelClientReply()">Cancel</button>
+                </div>
+              </div>
+            }
           </div>
         }
         <div class="bm-footer">
