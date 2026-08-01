@@ -146,7 +146,17 @@ export class BookingComponent implements OnInit {
   }
 
   get minDate(): string {
-    return new Date().toISOString().split('T')[0];
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
+
+  isTimePast(time: string): boolean {
+    const now = new Date();
+    const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (this.selectedDate() !== todayLocal) return false;
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m <= nowMins;
   }
 
   async ngOnInit() {
@@ -199,17 +209,6 @@ export class BookingComponent implements OnInit {
 
     if (isOpen && open && close) {
       let slots = this.bookingService.generateTimeSlots(open, close, svc.duration || 60);
-
-      // Filter out times that have already passed if booking today
-      const today = new Date().toISOString().split('T')[0];
-      if (this.selectedDate() === today) {
-        const now = new Date();
-        const nowMins = now.getHours() * 60 + now.getMinutes();
-        slots = slots.filter(t => {
-          const [h, m] = t.split(':').map(Number);
-          return h * 60 + m > nowMins;
-        });
-      }
 
       // Filter out time slots already confirmed for this provider
       const confirmedTimes = new Set(

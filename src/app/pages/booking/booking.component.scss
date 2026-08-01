@@ -284,6 +284,20 @@
     color: white;
     box-shadow: var(--shadow-primary);
   }
+
+  &.past {
+    opacity: 0.35;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    filter: blur(0.4px);
+    pointer-events: none;
+
+    &:hover {
+      border-color: var(--border);
+      color: var(--text);
+      background: var(--surface);
+    }
+  }
 }
 
 .no-slots {
