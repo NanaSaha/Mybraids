@@ -12,6 +12,9 @@ module Routes
         rows = DB.fetch(<<~SQL, @current_user['id']).all
           SELECT b.*,
                  u.display_name AS provider_name,
+                 u.email        AS provider_email,
+                 p.phone        AS provider_phone,
+                 p.location     AS provider_location,
                  s.name         AS service_name
           FROM   bookings  b
           JOIN   providers p ON p.id = b.provider_id
@@ -198,15 +201,31 @@ module Routes
       end
 
       app.helpers do
+        def format_location(raw)
+          return '' if raw.nil? || raw.to_s.strip.empty?
+          parsed = raw.is_a?(String) ? (JSON.parse(raw) rescue {}) : raw
+          parts = [
+            parsed['address'] || parsed[:address],
+            parsed['city']    || parsed[:city],
+            parsed['country'] || parsed[:country]
+          ].compact.reject(&:empty?)
+          parts.join(', ')
+        rescue
+          ''
+        end
+
         def serialize_booking(r)
           {
-            id:            r[:id],
-            clientId:      r[:client_id],
-            clientName:    r[:client_name]  || '',
-            clientEmail:   r[:client_email] || '',
-            clientPhone:   r[:client_phone] || '',
-            providerId:    r[:provider_id],
-            providerName:  r[:provider_name] || '',
+            id:               r[:id],
+            clientId:         r[:client_id],
+            clientName:       r[:client_name]  || '',
+            clientEmail:      r[:client_email] || '',
+            clientPhone:      r[:client_phone] || '',
+            providerId:       r[:provider_id],
+            providerName:     r[:provider_name]  || '',
+            providerEmail:    r[:provider_email] || '',
+            providerPhone:    r[:provider_phone] || '',
+            providerLocation: format_location(r[:provider_location]),
             serviceId:     r[:service_id],
             serviceName:   r[:service_name] || '',
             servicePrice:  r[:service_price].to_f,

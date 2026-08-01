@@ -8,6 +8,9 @@ export interface Booking {
   clientPhone: string;
   providerId: string;
   providerName: string;
+  providerEmail: string;
+  providerPhone: string;
+  providerLocation: string;
   serviceId: string;
   serviceName: string;
   servicePrice: number;

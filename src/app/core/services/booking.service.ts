@@ -50,7 +50,7 @@ export class BookingService {
         clientEmail: '',
         clientPhone: '',
         providerId: booking.providerId,
-        providerName: '',
+        providerName: '', providerEmail: '', providerPhone: '', providerLocation: '',
         serviceId: booking.serviceId,
         serviceName: '',
         servicePrice: 0,
@@ -130,7 +130,7 @@ export class BookingService {
     {
       id: 'b1', clientId: 'current-user', clientName: 'You',
       clientEmail: 'user@example.com', clientPhone: '+1 555 0100',
-      providerId: '1', providerName: 'Amara Diallo',
+      providerId: '1', providerName: 'Amara Diallo', providerEmail: '', providerPhone: '', providerLocation: '',
       serviceId: 's1', serviceName: 'Knotless Box Braids',
       servicePrice: 120, currency: 'USD', date: '2024-07-15', time: '10:00', duration: 240,
       status: 'confirmed', notes: 'Please prepare hair with conditioner', providerNote: '', clientReply: '',
@@ -140,7 +140,7 @@ export class BookingService {
     {
       id: 'b2', clientId: 'current-user', clientName: 'You',
       clientEmail: 'user@example.com', clientPhone: '+1 555 0100',
-      providerId: '2', providerName: 'Fatima Ouédraogo',
+      providerId: '2', providerName: 'Fatima Ouédraogo', providerEmail: '', providerPhone: '', providerLocation: '',
       serviceId: 's2', serviceName: 'Evening Glam',
       servicePrice: 100, currency: 'USD', date: '2024-08-02', time: '14:00', duration: 60,
       status: 'pending', notes: 'Birthday party, going for bold red look', providerNote: '', clientReply: '',

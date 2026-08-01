@@ -639,6 +639,24 @@
   p { margin: 0; }
 }
 
+.bm-artist-contact {
+  background: var(--sage-pale, #f0f7f2);
+  border: 1px solid rgba(74, 124, 89, 0.15);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+
+  h4 { color: var(--sage, #4A7C59) !important; }
+
+  .bm-row a { color: var(--sage, #4A7C59) !important; }
+}
+
+.bm-empty {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
 .bm-footer {
   display: flex; gap: 8px; flex-wrap: wrap;
   padding-top: 8px;

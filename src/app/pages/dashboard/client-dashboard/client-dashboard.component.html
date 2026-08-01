@@ -323,6 +323,32 @@
             <div class="bm-row"><span>Payment</span><span>{{ selectedBooking()!.paymentMethod }}</span></div>
           }
         </div>
+        @if (selectedBooking()!.status === 'confirmed') {
+          <div class="bm-section bm-artist-contact">
+            <h4><i class="fas fa-address-card"></i> Artist Contact</h4>
+            @if (selectedBooking()!.providerEmail) {
+              <div class="bm-row">
+                <span>Email</span>
+                <a [href]="'mailto:' + selectedBooking()!.providerEmail">{{ selectedBooking()!.providerEmail }}</a>
+              </div>
+            }
+            @if (selectedBooking()!.providerPhone) {
+              <div class="bm-row">
+                <span>Phone</span>
+                <a [href]="'tel:' + selectedBooking()!.providerPhone">{{ selectedBooking()!.providerPhone }}</a>
+              </div>
+            }
+            @if (selectedBooking()!.providerLocation) {
+              <div class="bm-row">
+                <span>Location</span>
+                <span>{{ selectedBooking()!.providerLocation }}</span>
+              </div>
+            }
+            @if (!selectedBooking()!.providerEmail && !selectedBooking()!.providerPhone && !selectedBooking()!.providerLocation) {
+              <p class="bm-empty">Contact details not yet added by the artist.</p>
+            }
+          </div>
+        }
         @if (selectedBooking()!.clientLocation || selectedBooking()!.hairType || selectedBooking()!.notes) {
           <div class="bm-section">
             <h4><i class="fas fa-clipboard"></i> Your Booking Details</h4>
