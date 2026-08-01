@@ -389,6 +389,19 @@
       </div>
     </div>
   </div>
+
+  <!-- Fixed bottom Book Now bar (always visible while scrolling) -->
+  <div class="book-now-bar">
+    <div class="book-now-bar-inner">
+      <div class="book-now-price">
+        <span class="bnb-label">Starting from</span>
+        <span class="bnb-amount">{{ provider()!.currency }} {{ provider()!.startingPrice }}</span>
+      </div>
+      <a [routerLink]="['/book', provider()!.id]" class="btn btn-primary btn-lg bnb-btn">
+        <i class="fas fa-calendar-plus"></i> Book Now
+      </a>
+    </div>
+  </div>
 } @else {
   <div class="not-found">
     <div class="container text-center" style="padding: 120px 24px">
